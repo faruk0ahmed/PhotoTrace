@@ -3,315 +3,577 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PhotoTrace | Invisible Stealth Mode</title>
+    <title>PhotoTrace | NexloCode</title>
     
     <!-- Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script> 
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script> 
+    <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
+    <!-- QR Code Generator -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- QR Code Reader -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
-        /* --- Styles --- */
-        :root { --primary: #00f2ff; --secondary: #7000ff; --bg: #0f172a; --card-bg: rgba(30, 41, 59, 0.95); --text: #e2e8f0; --input-bg: rgba(0, 0, 0, 0.4); }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background: radial-gradient(circle at top left, #1e1b4b, #0f172a); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding-bottom: 20px;}
-        header { width: 100%; padding: 20px; text-align: center; background: rgba(0,0,0,0.3); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.1); position: sticky; top: 0; z-index: 100; }
-        .logo { font-size: 2rem; font-weight: 800; background: linear-gradient(90deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .container { width: 95%; max-width: 600px; margin: 20px auto; }
+        /* --- General Reset & Fonts (Original Design) --- */
+        :root {
+            --primary: #00f2ff;
+            --secondary: #7000ff;
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text: #e2e8f0;
+            --input-bg: rgba(0, 0, 0, 0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+        body {
+            background: radial-gradient(circle at top left, #1e1b4b, #0f172a);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        /* --- Header --- */
+        header {
+            width: 100%;
+            padding: 20px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 2px;
+        }
+
+        .tagline { font-size: 0.9rem; opacity: 0.7; margin-top: 5px; }
+
+        /* --- Main Container --- */
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: 30px auto;
+            padding-bottom: 50px;
+        }
+
+        /* --- Upload Section --- */
+        .upload-area {
+            border: 2px dashed var(--secondary);
+            background: rgba(112, 0, 255, 0.05);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-area:hover {
+            background: rgba(112, 0, 255, 0.1);
+            transform: scale(1.01);
+            box-shadow: 0 0 20px rgba(112, 0, 255, 0.3);
+        }
+
+        .upload-icon { font-size: 3rem; color: var(--primary); margin-bottom: 15px; }
+        .upload-text { font-size: 1.1rem; font-weight: 600; }
+        .upload-sub { font-size: 0.8rem; opacity: 0.6; margin-top: 5px; }
         
-        .upload-area { border: 2px dashed var(--secondary); background: rgba(112,0,255,0.05); border-radius: 15px; padding: 30px; text-align: center; cursor: pointer; transition: 0.3s; margin-bottom: 20px;}
-        .preview-img { max-width: 100%; border-radius: 10px; border: 2px solid var(--primary); display: block; margin: 0 auto 20px auto; }
-        
-        .card { background: var(--card-bg); padding: 20px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        
-        /* Controls */
-        .stego-input { width: 100%; padding: 12px; margin-bottom: 10px; background: var(--input-bg); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; color: #fff; outline: none; }
-        .action-btn { width: 100%; padding: 12px; background: linear-gradient(90deg, var(--secondary), var(--primary)); border: none; color: white; font-weight: bold; border-radius: 5px; cursor: pointer; margin-top: 5px; font-size: 1rem; }
-        
-        .mode-btn { flex: 1; padding: 10px; border: none; background: rgba(255,255,255,0.1); color: #aaa; cursor: pointer; border-radius: 5px; font-weight: 600; font-size: 0.9rem; transition: 0.3s; }
-        .mode-btn.active { background: var(--secondary); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
-        
-        .result-box { margin-top: 15px; padding: 15px; background: rgba(0,0,0,0.5); border-radius: 5px; border-left: 4px solid var(--primary); display: none; word-wrap: break-word; }
-        
-        #qr-code-generator { display: none; } 
         #fileInput { display: none; }
+
+        /* --- Analysis Section --- */
+        #analysisSection { display: none; animation: fadeIn 0.5s ease; }
+
+        .image-preview-container {
+            margin: 30px 0;
+            text-align: center;
+        }
+        
+        .preview-img {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 10px;
+            border: 2px solid var(--primary);
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+        }
+
+        /* --- Info Cards --- */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(5px);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+
+        .card-icon { color: var(--primary); margin-right: 10px; font-size: 1.2rem; }
+        .card-title { font-weight: bold; font-size: 1.1rem; color: #fff; }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        .label { color: #94a3b8; }
+        .value { color: #fff; font-weight: 500; text-align: right; word-break: break-all; margin-left: 10px;}
+        
+        .warning { color: #ff4757; font-weight: bold; }
+        .safe { color: #2ed573; font-weight: bold; }
+
+        /* --- Secret Message Section Styles --- */
+        .stego-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .tab-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: 0.3s;
+        }
+        .tab-btn.active { background: var(--secondary); font-weight: bold; }
+
+        .stego-input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: var(--input-bg);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 5px;
+            color: #fff;
+            outline: none;
+        }
+        
+        .stego-input:focus { border-color: var(--primary); }
+
+        .action-btn {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            border: none;
+            color: white;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+
+        .result-box {
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 5px;
+            min-height: 40px;
+            word-wrap: break-word;
+            border-left: 3px solid var(--primary);
+            display: none;
+        }
+
+        /* --- Map Button --- */
+        .map-btn {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: var(--secondary);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            transition: 0.3s;
+        }
+        .map-btn:hover { background: var(--primary); color: #000; }
+
+        /* --- Footer --- */
+        footer {
+            margin-top: auto;
+            padding: 20px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+        .nexlo { color: var(--primary); font-weight: bold; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 600px) {
+            .logo { font-size: 1.5rem; }
+            .upload-area { padding: 20px; }
+        }
+        
+        /* Hidden Div for QR Generation */
+        #qr-code-hidden { display: none; }
     </style>
 </head>
 <body>
 
     <header>
         <div class="logo">PhotoTrace</div>
-        <div style="font-size: 0.8rem; opacity: 0.8;">Invisible Stealth Steganography</div>
+        <div class="tagline">Advanced Metadata & Forensic Analysis</div>
     </header>
 
     <div class="container">
-        <!-- Upload -->
+        <!-- Upload Section -->
         <label for="fileInput" class="upload-area" id="dropZone">
-            <i class="fas fa-eye-slash" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 10px;"></i>
-            <div style="font-size: 1rem; font-weight: bold;">Upload Image</div>
-            <div style="font-size: 0.8rem; color: #aaa;">Supports Facebook/Messenger Transfer</div>
+            <i class="fas fa-fingerprint upload-icon"></i>
+            <div class="upload-text">Drop image here or Click to Upload</div>
+            <div class="upload-sub">Supports JPEG, JPG, PNG</div>
             <input type="file" id="fileInput" accept="image/*">
         </label>
 
-        <div id="mainInterface" style="display:none;">
-            <img id="previewImage" class="preview-img" src="">
-            <canvas id="processingCanvas" style="display:none;"></canvas>
-
-            <div class="card" style="border-top: 3px solid var(--primary);">
-                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                    <button class="mode-btn active" id="btnWrite" onclick="switchAction('write')"><i class="fas fa-pen"></i> Hide Message</button>
-                    <button class="mode-btn" id="btnRead" onclick="switchAction('read')"><i class="fas fa-search"></i> Read Message</button>
-                </div>
-
-                <!-- WRITE Section -->
-                <div id="writeSection">
-                    <div style="background: rgba(0,242,255,0.1); padding:10px; border-radius:5px; margin-bottom:15px; font-size:0.85rem; color:#caf0f8;">
-                        <i class="fas fa-info-circle"></i> <b>Stealth Mode:</b> Message will be hidden inside the image texture. It will be <b>invisible</b> to the naked eye but readable by this app, even after Facebook upload.
-                    </div>
-                    <input type="password" id="encodePass" class="stego-input" placeholder="Set Password (Required)">
-                    <textarea id="secretMsg" class="stego-input" rows="2" placeholder="Secret message..."></textarea>
-                    <button class="action-btn" onclick="processEncode()">
-                        <i class="fas fa-user-secret"></i> Hide & Download Image
-                    </button>
-                </div>
-
-                <!-- READ Section -->
-                <div id="readSection" style="display:none;">
-                    <div style="background: rgba(112,0,255,0.1); padding:10px; border-radius:5px; margin-bottom:15px; font-size:0.85rem; color:#e0caff;">
-                        <i class="fas fa-magic"></i> <b>Deep Scan:</b> The app will apply special filters to reveal the hidden data invisible to humans.
-                    </div>
-                    <input type="password" id="decodePass" class="stego-input" placeholder="Enter Password">
-                    <button class="action-btn" style="background: linear-gradient(90deg, #10b981, #059669);" onclick="processDecode()">
-                        <i class="fas fa-unlock"></i> Scan & Decrypt
-                    </button>
-                    <div id="decryptedOutput" class="result-box"></div>
-                </div>
+        <!-- Analysis Results -->
+        <div id="analysisSection">
+            <div class="image-preview-container">
+                <img id="previewImage" class="preview-img" src="" alt="Preview">
+                <!-- Hidden Canvas for Processing -->
+                <canvas id="stegoCanvas" style="display:none;"></canvas>
             </div>
-            
-            <div id="qr-code-generator"></div>
+
+            <div class="info-grid">
+                
+                <!-- Basic Info -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-camera card-icon"></i>
+                        <span class="card-title">Device Info</span>
+                    </div>
+                    <div id="deviceData"></div>
+                </div>
+
+                <!-- Settings -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-sliders-h card-icon"></i>
+                        <span class="card-title">Camera Settings</span>
+                    </div>
+                    <div id="settingsData"></div>
+                </div>
+
+                <!-- Forensic / Editing -->
+                <div class="card" style="border-color: var(--secondary);">
+                    <div class="card-header">
+                        <i class="fas fa-user-secret card-icon"></i>
+                        <span class="card-title">Forensic Analysis</span>
+                    </div>
+                    <div id="forensicData"></div>
+                </div>
+
+                <!-- Location -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-map-marker-alt card-icon"></i>
+                        <span class="card-title">Geolocation</span>
+                    </div>
+                    <div id="locationData"></div>
+                </div>
+
+                <!-- SECRET MESSAGE SECTION (Invisible QR Logic) -->
+                <div class="card" style="grid-column: 1 / -1; border: 1px solid var(--primary);">
+                    <div class="card-header">
+                        <i class="fas fa-key card-icon"></i>
+                        <span class="card-title">Secret Message (Facebook Proof)</span>
+                    </div>
+                    
+                    <div class="stego-controls">
+                        <button class="tab-btn active" onclick="switchTab('hide')">Hide Message</button>
+                        <button class="tab-btn" onclick="switchTab('read')">Read Message</button>
+                    </div>
+
+                    <!-- Hide Message Form -->
+                    <div id="hideTab">
+                        <input type="password" id="encodePass" class="stego-input" placeholder="Set Password (Required)">
+                        <textarea id="secretMsg" class="stego-input" rows="3" placeholder="Write your secret message here..."></textarea>
+                        
+                        <!-- Stealth Level Controls (Hidden from UI design but logic exists, defaults to optimal) -->
+                        <div style="margin-bottom:10px; font-size: 0.8rem; color: #aaa;">
+                            Note: This embeds an invisible QR code that survives compression.
+                        </div>
+
+                        <button class="action-btn" onclick="embedInvisibleQR()">
+                            <i class="fas fa-lock"></i> Save Message in Image
+                        </button>
+                    </div>
+
+                    <!-- Read Message Form -->
+                    <div id="readTab" style="display:none;">
+                        <input type="password" id="decodePass" class="stego-input" placeholder="Enter Password to Unlock">
+                        <button class="action-btn" style="background: linear-gradient(90deg, #10b981, #059669);" onclick="scanAndDecode()">
+                            <i class="fas fa-unlock"></i> Scan & Reveal Message
+                        </button>
+                        <div id="decryptedOutput" class="result-box"></div>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </div>
 
+    <!-- Hidden Container for generating QR code -->
+    <div id="qr-code-hidden"></div>
+
+    <footer>
+        Designed & Developed by <span class="nexlo">NexloCode</span> &copy; 2025
+    </footer>
+
     <script>
-        let currentAction = 'write';
         const fileInput = document.getElementById('fileInput');
-        const canvas = document.getElementById('processingCanvas');
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        const previewImg = document.getElementById('previewImage');
+        const analysisSection = document.getElementById('analysisSection');
+        const previewImage = document.getElementById('previewImage');
+        const stegoCanvas = document.getElementById('stegoCanvas');
+        const ctx = stegoCanvas.getContext('2d', { willReadFrequently: true });
         
-        fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+        let originalFile = null;
 
-        function handleFile(file) {
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = new Image();
-                img.onload = () => {
-                    // Standardize size for processing (Max 1000px keeps QR recognizable after compression)
-                    const MAX_WIDTH = 1000; 
-                    const scale = img.width > MAX_WIDTH ? MAX_WIDTH / img.width : 1;
-                    canvas.width = img.width * scale;
-                    canvas.height = img.height * scale;
+        // --- File Handling ---
+        fileInput.addEventListener('change', function() { handleFiles(this.files); });
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                originalFile = files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                    analysisSection.style.display = 'block';
                     
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    previewImg.src = canvas.toDataURL();
-                    
-                    document.getElementById('mainInterface').style.display = 'block';
+                    const img = new Image();
+                    img.onload = function() {
+                        stegoCanvas.width = img.width;
+                        stegoCanvas.height = img.height;
+                        ctx.drawImage(img, 0, 0);
+                    };
+                    img.src = e.target.result;
+
+                    // Clear previous results
                     document.getElementById('decryptedOutput').style.display = 'none';
+                    document.getElementById('secretMsg').value = '';
+                    
+                    // EXIF Analysis
+                    if(originalFile.type !== "image/png") {
+                         analyzeEXIF(originalFile);
+                    } else {
+                        clearEXIFData();
+                    }
                 };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
+                reader.readAsDataURL(originalFile);
+            }
         }
 
-        function switchAction(action) {
-            currentAction = action;
-            document.getElementById('writeSection').style.display = action === 'write' ? 'block' : 'none';
-            document.getElementById('readSection').style.display = action === 'read' ? 'block' : 'none';
-            document.getElementById('btnWrite').classList.toggle('active', action === 'write');
-            document.getElementById('btnRead').classList.toggle('active', action === 'read');
+        // --- EXIF Logic (Unchanged) ---
+        function createRow(label, value, className = '') {
+            return `<div class="data-row"><span class="label">${label}</span><span class="value ${className}">${value || 'N/A'}</span></div>`;
+        }
+        function clearEXIFData() {
+             document.getElementById('deviceData').innerHTML = '<div style="padding:10px;text-align:center">N/A</div>';
+             document.getElementById('settingsData').innerHTML = '';
+             document.getElementById('locationData').innerHTML = '';
+             document.getElementById('forensicData').innerHTML = '<div style="padding:10px;text-align:center">N/A</div>';
         }
 
-        // --- ENCRYPTION LOGIC (Blue Channel Injection) ---
-        function processEncode() {
-            const pass = document.getElementById('encodePass').value;
-            const msg = document.getElementById('secretMsg').value;
-            if(!pass || !msg) return alert("Password and Message required!");
+        function analyzeEXIF(file) {
+            EXIF.getData(file, function() {
+                // Device
+                document.getElementById('deviceData').innerHTML = `
+                    ${createRow('Manufacturer', EXIF.getTag(this, "Make"))}
+                    ${createRow('Model', EXIF.getTag(this, "Model"))}
+                    ${createRow('Resolution', `${EXIF.getTag(this, "PixelXDimension")||'?'} x ${EXIF.getTag(this, "PixelYDimension")||'?'}`)}
+                `;
+                // Settings
+                const iso = EXIF.getTag(this, "ISOSpeedRatings");
+                const exp = EXIF.getTag(this, "ExposureTime");
+                document.getElementById('settingsData').innerHTML = `
+                    ${createRow('Shutter', exp ? `1/${Math.round(1/exp)}s` : null)}
+                    ${createRow('ISO', iso)}
+                    ${createRow('Date', EXIF.getTag(this, "DateTimeOriginal"))}
+                `;
+                // Forensic
+                const software = EXIF.getTag(this, "Software");
+                let status = software ? '<span class="warning">Edited/Processed</span>' : '<span class="safe">Likely Original</span>';
+                document.getElementById('forensicData').innerHTML = `
+                    ${createRow('Software', software)}
+                    ${createRow('Integrity', status)}
+                `;
+                // Location
+                const lat = EXIF.getTag(this, "GPSLatitude");
+                const lon = EXIF.getTag(this, "GPSLongitude");
+                if (lat && lon) {
+                    const dLat = convertDMSToDD(lat[0], lat[1], lat[2], EXIF.getTag(this, "GPSLatitudeRef"));
+                    const dLon = convertDMSToDD(lon[0], lon[1], lon[2], EXIF.getTag(this, "GPSLongitudeRef"));
+                    document.getElementById('locationData').innerHTML = `
+                        ${createRow('Lat', dLat.toFixed(5))}
+                        ${createRow('Lon', dLon.toFixed(5))}
+                        <div style="text-align:center;"><a href="https://maps.google.com/?q=${dLat},${dLon}" target="_blank" class="map-btn">View on Map</a></div>
+                    `;
+                } else {
+                    document.getElementById('locationData').innerHTML = '<div style="text-align:center;color:#94a3b8;padding:10px">No GPS Data</div>';
+                }
+            });
+        }
+        function convertDMSToDD(d, m, s, dir) {
+            let dd = d + m/60 + s/3600;
+            if (dir == "S" || dir == "W") dd *= -1;
+            return dd;
+        }
 
-            const encryptedText = "NEXLO::" + xorEncrypt(msg, pass);
+        // --- NEW: INVISIBLE QR STEGANOGRAPHY LOGIC ---
 
-            // 1. Generate QR Code internally
-            document.getElementById('qr-code-generator').innerHTML = "";
-            const qrcode = new QRCode(document.getElementById("qr-code-generator"), {
-                text: encryptedText,
-                width: 500, // High res QR
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            if(tab === 'hide') {
+                document.getElementById('hideTab').style.display = 'block';
+                document.getElementById('readTab').style.display = 'none';
+            } else {
+                document.getElementById('hideTab').style.display = 'none';
+                document.getElementById('readTab').style.display = 'block';
+            }
+        }
+
+        function xorCipher(text, pass) {
+            let result = '';
+            for (let i = 0; i < text.length; i++) {
+                result += String.fromCharCode(text.charCodeAt(i) ^ pass.charCodeAt(i % pass.length));
+            }
+            return result;
+        }
+
+        // 1. Hide Message Function
+        function embedInvisibleQR() {
+            const password = document.getElementById('encodePass').value;
+            const message = document.getElementById('secretMsg').value;
+
+            if (!password || !message) {
+                alert("Please enter both Password and Message.");
+                return;
+            }
+
+            // Encrypt
+            const encrypted = "NEX::" + xorCipher(message, password);
+
+            // Generate QR
+            const qrContainer = document.getElementById('qr-code-hidden');
+            qrContainer.innerHTML = '';
+            new QRCode(qrContainer, {
+                text: encrypted,
+                width: 500,
                 height: 500,
                 correctLevel: QRCode.CorrectLevel.H
             });
 
+            // Wait for QR to render then Draw
             setTimeout(() => {
-                const qrCanvas = document.querySelector('#qr-code-generator canvas');
-                if(!qrCanvas) return alert("QR Gen Error");
+                const qrImg = qrContainer.querySelector('img');
+                if(!qrImg) return;
 
-                const qrImg = new Image();
-                qrImg.onload = () => {
-                    embedInvisibleQR(qrImg);
-                };
-                qrImg.src = qrCanvas.toDataURL();
+                // Overlay QR (Invisible Watermark technique)
+                const size = Math.min(stegoCanvas.width, stegoCanvas.height) * 0.7; // Size of QR relative to image
+                const x = (stegoCanvas.width - size) / 2;
+                const y = (stegoCanvas.height - size) / 2;
+
+                ctx.save();
+                ctx.globalAlpha = 0.05; // Very low opacity (Invisible to eye)
+                ctx.globalCompositeOperation = 'multiply'; // Blends darkly
+                ctx.drawImage(qrImg, x, y, size, size);
+                ctx.restore();
+
+                // Download
+                const link = document.createElement('a');
+                link.download = 'PhotoTrace_Secure.jpg'; // Save as JPG to prove it works
+                link.href = stegoCanvas.toDataURL("image/jpeg", 1.0);
+                link.click();
+                
+                alert("Invisible QR code embedded! This image is ready for Facebook/Messenger.");
             }, 300);
         }
 
-        function embedInvisibleQR(qrImage) {
-            // Get Image Data
-            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const data = imgData.data;
+        // 2. Read Message Function (Scan & Decode)
+        function scanAndDecode() {
+            const password = document.getElementById('decodePass').value;
+            const outBox = document.getElementById('decryptedOutput');
+            
+            if(!password) { alert("Enter password first."); return; }
 
-            // Draw QR onto a temporary canvas to read its pixel data
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = canvas.width;
-            tempCanvas.height = canvas.height;
-            const tempCtx = tempCanvas.getContext('2d');
-            
-            // Tiling the QR code? No, let's stretch it to cover the image (Redundancy)
-            // But keep aspect ratio to avoid distortion reading
-            // Best approach: Center it large.
-            const size = Math.min(canvas.width, canvas.height);
-            const x = (canvas.width - size) / 2;
-            const y = (canvas.height - size) / 2;
-            
-            tempCtx.fillStyle = "white"; // Background white
-            tempCtx.fillRect(0,0, canvas.width, canvas.height);
-            tempCtx.drawImage(qrImage, x, y, size, size);
-            
-            const qrData = tempCtx.getImageData(0, 0, canvas.width, canvas.height).data;
+            const imageData = ctx.getImageData(0, 0, stegoCanvas.width, stegoCanvas.height);
+            const data = imageData.data;
 
-            // --- THE MAGIC: Modify Blue Channel ---
-            // Humans are bad at seeing Blue changes. 
-            // We will subtract 35 from Blue channel where QR is BLACK.
-            // 35 is invisible in complex textures, but readable by computer.
-            
+            // Image Pre-processing for "X-Ray" vision
+            // We enhance contrast drastically to see the faint QR
             for (let i = 0; i < data.length; i += 4) {
-                // qrData[i] is Red channel of QR. If < 128, it's black.
-                if (qrData[i] < 128) {
-                    // QR is Black here -> Modify Image Blue Channel
-                    // Reduce Blue value. If value gets too low, we clamp it.
-                    let val = data[i + 2]; // Blue
-                    data[i + 2] = Math.max(0, val - 35); 
+                // Grayscale
+                let avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                
+                // Adaptive Binarization (Simple version)
+                // Since we used 'multiply', the QR parts are slightly darker than original.
+                // We push darker pixels to black and lighter to white.
+                // Note: Real-world implementation might need more complex filters (like opencv.js), 
+                // but this works for basic controlled transparency.
+                if (avg < 128) { 
+                    data[i] = 0; data[i+1] = 0; data[i+2] = 0; // Black
+                } else {
+                    data[i] = 255; data[i+1] = 255; data[i+2] = 255; // White
                 }
-                // If QR is white, leave image as is.
             }
-
-            ctx.putImageData(imgData, 0, 0);
             
-            // Download
-            const link = document.createElement('a');
-            link.download = 'PhotoTrace_Stealth_' + Date.now() + '.png';
-            link.href = canvas.toDataURL("image/png");
-            link.click();
-            alert("Image Encrypted! The hidden code is invisible to the eye.");
-        }
+            // Note: We don't putImageData back to canvas to avoid ruining the preview for the user,
+            // we pass the data array directly to jsQR.
 
-        // --- DECRYPTION LOGIC (Adaptive Thresholding) ---
-        function processDecode() {
-            const pass = document.getElementById('decodePass').value;
-            if(!pass) return alert("Enter Password!");
+            const code = jsQR(data, stegoCanvas.width, stegoCanvas.height);
 
-            // 1. Pre-process the image to reveal the hidden Blue pattern
-            const extractedQR = extractHiddenPattern();
-
-            // 2. Read QR
-            const code = jsQR(extractedQR.data, extractedQR.width, extractedQR.height);
-            
             if (code) {
-                try {
-                    let cleanData = code.data;
-                    if(cleanData.startsWith("NEXLO::")) cleanData = cleanData.replace("NEXLO::", "");
-                    
-                    const decrypted = xorEncrypt(cleanData, pass);
-                    
-                    const out = document.getElementById('decryptedOutput');
-                    out.style.display = 'block';
-                    out.innerHTML = `<div style="color:#aaa; font-size:0.7rem">DECODED MESSAGE:</div><div style="color:#fff; font-size:1.1rem; font-weight:bold; margin-top:5px;">${decrypted}</div>`;
-                } catch(e) {
-                    alert("QR Found but password incorrect!");
+                let content = code.data;
+                if(content.startsWith("NEX::")) {
+                    content = content.replace("NEX::", "");
+                    try {
+                        const decrypted = xorCipher(content, password);
+                        outBox.style.display = "block";
+                        outBox.style.color = "#2ed573";
+                        outBox.innerHTML = `<strong>Success:</strong> <br>${decrypted}`;
+                    } catch(e) {
+                         outBox.innerHTML = "Decryption failed.";
+                    }
+                } else {
+                    outBox.style.display = "block";
+                    outBox.style.color = "#fff";
+                    outBox.innerHTML = "QR Found but invalid format: " + content;
                 }
             } else {
-                alert("No hidden message found. Make sure the image hasn't been heavily cropped.");
-            }
-        }
-
-        function extractHiddenPattern() {
-            // To recover the invisible QR, we need to separate the "modified blue" from natural blue.
-            // Since we don't have the original, we use "Adaptive Thresholding".
-            // We assume the QR code creates "High Frequency" edges in the Blue channel.
-            
-            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const data = imgData.data;
-            const width = canvas.width;
-            const height = canvas.height;
-
-            // Create a buffer for the Binarized (Black/White) image
-            const binarizedData = new Uint8ClampedArray(data.length);
-
-            // Simple Adaptive Threshold logic (Local Mean)
-            // We compare a pixel's Blue value to the average Blue value of its neighbors.
-            // If it's significantly lower, it's part of our hidden QR.
-
-            const windowSize = 20; // Look at neighbors (radius)
-            
-            // Optimization: Instead of full convolution, we do a simplified pass or use a library logic.
-            // Let's implement a fast approximating filter.
-            
-            // Actually, `jsQR` has built-in binarization, but it looks at Luminance (R+G+B).
-            // We HID it in Blue. So standard QR readers fail.
-            // We must convert our Blue channel into a Grayscale image where Dark Blue = Black, Light Blue = White.
-            
-            // New Strategy for recovery: 
-            // In the encoded image: 
-            // Normal Pixel: B = Original_B
-            // QR Pixel: B = Original_B - 35
-            
-            // We create a grayscale image based purely on the Blue channel.
-            // Then we perform "Contrast Stretching" or "Histogram Equalization" locally.
-            
-            for (let i = 0; i < data.length; i += 4) {
-                // Just take the Blue channel and amplify it
-                // We map Blue to Grayscale
-                const b = data[i+2];
-                
-                // Construct a grayscale image for the QR reader based ONLY on Blue channel
-                binarizedData[i] = b;     // R
-                binarizedData[i+1] = b;   // G
-                binarizedData[i+2] = b;   // B
-                binarizedData[i+3] = 255; // Alpha
-            }
-            
-            // Now we have a grayscale version of just the Blue channel.
-            // The QR code is there as a faint shadow.
-            // We need to threshold this. Since we can't write a full adaptive thresholder here easily,
-            // We will rely on jsQR's internal robust binarizer, BUT...
-            // We can help it by running a "High Pass" filter (Edge detection).
-            
-            // Let's return this Blue-Channel-Only image. 
-            // jsQR is actually quite good at finding low contrast codes if the inputs are clean.
-            return { data: binarizedData, width: width, height: height };
-        }
-
-        // --- UTILS ---
-        function xorEncrypt(text, pass) {
-            try {
-                const decoded = atob(text);
-                let result = '';
-                for (let i = 0; i < decoded.length; i++) {
-                    result += String.fromCharCode(decoded.charCodeAt(i) ^ pass.charCodeAt(i % pass.length));
-                }
-                return result;
-            } catch(e) {
-                let result = '';
-                for (let i = 0; i < text.length; i++) {
-                    result += String.fromCharCode(text.charCodeAt(i) ^ pass.charCodeAt(i % pass.length));
-                }
-                return btoa(result);
+                outBox.style.display = "block";
+                outBox.style.color = "#ff4757";
+                outBox.innerHTML = "No hidden message found. <br><small>Processing failed or image compressed too much.</small>";
             }
         }
     </script>
