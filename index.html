@@ -4,54 +4,178 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PhotoTrace | NexloCode</title>
-    
-    <!-- Libraries -->
+    <!-- EXIF Library CDN -->
     <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
-        /* --- পূর্বের হুবহু ডিজাইন (কোন পরিবর্তন নেই) --- */
-        :root { --primary: #00f2ff; --secondary: #7000ff; --bg: #0f172a; --card-bg: rgba(30, 41, 59, 0.7); --text: #e2e8f0; --input-bg: rgba(0, 0, 0, 0.3); }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background: radial-gradient(circle at top left, #1e1b4b, #0f172a); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; }
-        header { width: 100%; padding: 20px; text-align: center; background: rgba(0, 0, 0, 0.2); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255, 255, 255, 0.1); position: sticky; top: 0; z-index: 100; }
-        .logo { font-size: 2rem; font-weight: 800; background: linear-gradient(90deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 2px; }
+        /* --- General Reset & Fonts --- */
+        :root {
+            --primary: #00f2ff;
+            --secondary: #7000ff;
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text: #e2e8f0;
+            --input-bg: rgba(0, 0, 0, 0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+        body {
+            background: radial-gradient(circle at top left, #1e1b4b, #0f172a);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        /* --- Header --- */
+        header {
+            width: 100%;
+            padding: 20px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 2px;
+        }
+
         .tagline { font-size: 0.9rem; opacity: 0.7; margin-top: 5px; }
-        .container { width: 90%; max-width: 800px; margin: 30px auto; padding-bottom: 50px; }
-        .upload-area { border: 2px dashed var(--secondary); background: rgba(112, 0, 255, 0.05); border-radius: 20px; padding: 40px; text-align: center; cursor: pointer; transition: 0.3s; position: relative; overflow: hidden; }
-        .upload-area:hover { background: rgba(112, 0, 255, 0.1); transform: scale(1.01); box-shadow: 0 0 20px rgba(112, 0, 255, 0.3); }
+
+        /* --- Main Container --- */
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: 30px auto;
+            padding-bottom: 50px;
+        }
+
+        /* --- Upload Section --- */
+        .upload-area {
+            display: block; /* Label behaves as block */
+            border: 2px dashed var(--secondary);
+            background: rgba(112, 0, 255, 0.05);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-area:hover {
+            background: rgba(112, 0, 255, 0.1);
+            transform: scale(1.01);
+            box-shadow: 0 0 20px rgba(112, 0, 255, 0.3);
+        }
+
         .upload-icon { font-size: 3rem; color: var(--primary); margin-bottom: 15px; }
         .upload-text { font-size: 1.1rem; font-weight: 600; }
         .upload-sub { font-size: 0.8rem; opacity: 0.6; margin-top: 5px; }
+        
         #fileInput { display: none; }
+
+        /* --- Analysis Section --- */
         #analysisSection { display: none; animation: fadeIn 0.5s ease; }
-        .image-preview-container { margin: 30px 0; text-align: center; position: relative; }
-        .preview-img { max-width: 100%; max-height: 400px; border-radius: 10px; border: 2px solid var(--primary); box-shadow: 0 0 15px rgba(0, 242, 255, 0.2); }
-        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-        .card { background: var(--card-bg); padding: 20px; border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(5px); }
-        .card-header { display: flex; align-items: center; margin-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 10px; }
+
+        .image-preview-container {
+            margin: 30px 0;
+            text-align: center;
+        }
+        
+        .preview-img {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 10px;
+            border: 2px solid var(--primary);
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+        }
+
+        /* --- Info Cards --- */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(5px);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+
         .card-icon { color: var(--primary); margin-right: 10px; font-size: 1.2rem; }
         .card-title { font-weight: bold; font-size: 1.1rem; color: #fff; }
-        .data-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.9rem; }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: 5px;
+        }
+        .data-row:last-child { border-bottom: none; }
+
         .label { color: #94a3b8; }
         .value { color: #fff; font-weight: 500; text-align: right; word-break: break-all; margin-left: 10px;}
+        
         .warning { color: #ff4757; font-weight: bold; }
         .safe { color: #2ed573; font-weight: bold; }
+
+        /* --- Histogram Styles --- */
+        #histoCanvas {
+            width: 100%;
+            height: 120px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        /* --- Stego Styles --- */
         .stego-controls { display: flex; gap: 10px; margin-bottom: 15px; }
         .tab-btn { flex: 1; padding: 8px; border: none; background: rgba(255,255,255,0.1); color: #fff; cursor: pointer; border-radius: 5px; transition: 0.3s; }
         .tab-btn.active { background: var(--secondary); font-weight: bold; }
+
         .stego-input { width: 100%; padding: 10px; margin-bottom: 10px; background: var(--input-bg); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; color: #fff; outline: none; }
         .stego-input:focus { border-color: var(--primary); }
+
         .action-btn { width: 100%; padding: 10px; background: linear-gradient(90deg, var(--secondary), var(--primary)); border: none; color: white; font-weight: bold; border-radius: 5px; cursor: pointer; margin-top: 5px; }
+
         .result-box { margin-top: 15px; padding: 10px; background: rgba(0,0,0,0.4); border-radius: 5px; min-height: 40px; word-wrap: break-word; border-left: 3px solid var(--primary); display: none; }
+
         .map-btn { display: inline-block; margin-top: 10px; padding: 8px 16px; background: var(--secondary); color: white; text-decoration: none; border-radius: 5px; font-size: 0.8rem; transition: 0.3s; }
         .map-btn:hover { background: var(--primary); color: #000; }
+
         footer { margin-top: auto; padding: 20px; text-align: center; font-size: 0.8rem; color: #64748b; }
         .nexlo { color: var(--primary); font-weight: bold; }
+
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        #qr-code-hidden { display: none; }
     </style>
 </head>
 <body>
@@ -75,40 +199,73 @@
             <div class="image-preview-container">
                 <img id="previewImage" class="preview-img" src="" alt="Preview">
                 <!-- Hidden Canvas -->
-                <canvas id="stegoCanvas" style="display:none;"></canvas>
+                <canvas id="processCanvas" style="display:none;"></canvas>
             </div>
 
             <div class="info-grid">
                 
-                <!-- Basic Info -->
+                <!-- File Info -->
                 <div class="card">
-                    <div class="card-header"><i class="fas fa-camera card-icon"></i><span class="card-title">Device Info</span></div>
+                    <div class="card-header">
+                        <i class="fas fa-file-alt card-icon"></i>
+                        <span class="card-title">File Details</span>
+                    </div>
+                    <div id="fileData"></div>
+                </div>
+
+                <!-- Device Info -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-camera card-icon"></i>
+                        <span class="card-title">Device Info</span>
+                    </div>
                     <div id="deviceData"></div>
                 </div>
 
                 <!-- Settings -->
                 <div class="card">
-                    <div class="card-header"><i class="fas fa-sliders-h card-icon"></i><span class="card-title">Camera Settings</span></div>
+                    <div class="card-header">
+                        <i class="fas fa-sliders-h card-icon"></i>
+                        <span class="card-title">Camera Settings</span>
+                    </div>
                     <div id="settingsData"></div>
                 </div>
 
                 <!-- Forensic -->
                 <div class="card" style="border-color: var(--secondary);">
-                    <div class="card-header"><i class="fas fa-user-secret card-icon"></i><span class="card-title">Forensic Analysis</span></div>
+                    <div class="card-header">
+                        <i class="fas fa-user-secret card-icon"></i>
+                        <span class="card-title">Forensic Analysis</span>
+                    </div>
                     <div id="forensicData"></div>
+                </div>
+
+                <!-- Histogram -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-chart-line card-icon"></i>
+                        <span class="card-title">Color Analysis</span>
+                    </div>
+                    <canvas id="histoCanvas"></canvas>
+                    <div style="text-align:center; font-size:0.7rem; color:#aaa; margin-top:5px;">
+                        <span style="color:#ff4757">Red</span> | <span style="color:#2ed573">Green</span> | <span style="color:#00f2ff">Blue</span>
+                    </div>
                 </div>
 
                 <!-- Location -->
                 <div class="card">
-                    <div class="card-header"><i class="fas fa-map-marker-alt card-icon"></i><span class="card-title">Geolocation</span></div>
+                    <div class="card-header">
+                        <i class="fas fa-map-marker-alt card-icon"></i>
+                        <span class="card-title">Geolocation</span>
+                    </div>
                     <div id="locationData"></div>
                 </div>
 
-                <!-- SECRET MESSAGE SECTION -->
+                <!-- Steganography -->
                 <div class="card" style="grid-column: 1 / -1; border: 1px solid var(--primary);">
                     <div class="card-header">
                         <i class="fas fa-key card-icon"></i>
-                        <span class="card-title">Secret Message (Facebook Proof)</span>
+                        <span class="card-title">Secret Message (Steganography)</span>
                     </div>
                     
                     <div class="stego-controls">
@@ -116,23 +273,21 @@
                         <button class="tab-btn" onclick="switchTab('read')">Read Message</button>
                     </div>
 
-                    <!-- Hide Message Form -->
                     <div id="hideTab">
+                        <div style="font-size:0.8rem; color:#94a3b8; margin-bottom:10px;">
+                            * Image will be resized (Max 1920px) to keep file size low.
+                        </div>
                         <input type="password" id="encodePass" class="stego-input" placeholder="Set Password (Required)">
                         <textarea id="secretMsg" class="stego-input" rows="3" placeholder="Write your secret message here..."></textarea>
-                        <p style="font-size: 0.8rem; color: #aaa; margin-bottom: 10px;">
-                            <i class="fas fa-info-circle"></i> This adds a watermark invisible to the eye but readable by this scanner.
-                        </p>
-                        <button class="action-btn" onclick="embedInvisibleQR()">
-                            <i class="fas fa-lock"></i> Encode & Download Image
+                        <button class="action-btn" onclick="encodeMessage()">
+                            <i class="fas fa-lock"></i> Save Message in Image
                         </button>
                     </div>
 
-                    <!-- Read Message Form -->
                     <div id="readTab" style="display:none;">
                         <input type="password" id="decodePass" class="stego-input" placeholder="Enter Password to Unlock">
-                        <button class="action-btn" style="background: linear-gradient(90deg, #10b981, #059669);" onclick="scanAndDecode()">
-                            <i class="fas fa-search"></i> Deep Scan & Reveal
+                        <button class="action-btn" style="background: linear-gradient(90deg, #10b981, #059669);" onclick="decodeMessage()">
+                            <i class="fas fa-unlock"></i> Reveal Message
                         </button>
                         <div id="decryptedOutput" class="result-box"></div>
                     </div>
@@ -142,186 +297,297 @@
         </div>
     </div>
 
-    <!-- Hidden Container for QR -->
-    <div id="qr-code-hidden"></div>
-
-    <footer>Designed & Developed by <span class="nexlo">NexloCode</span> &copy; 2025</footer>
+    <footer>
+        Designed & Developed by <span class="nexlo">NexloCode</span> &copy; 2025
+    </footer>
 
     <script>
         const fileInput = document.getElementById('fileInput');
         const analysisSection = document.getElementById('analysisSection');
         const previewImage = document.getElementById('previewImage');
-        const stegoCanvas = document.getElementById('stegoCanvas');
-        const ctx = stegoCanvas.getContext('2d', { willReadFrequently: true });
+        const processCanvas = document.getElementById('processCanvas');
+        const ctx = processCanvas.getContext('2d', { willReadFrequently: true });
         
-        // --- File Handling ---
-        fileInput.addEventListener('change', function() {
-            if (this.files.length > 0) {
-                const file = this.files[0];
+        let originalFile = null;
+
+        // --- Drag & Drop Handling ---
+        const dropZone = document.getElementById('dropZone');
+
+        // Prevent default drag behaviors
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        // Highlight effect on drag
+        dropZone.addEventListener('dragover', () => dropZone.style.transform = "scale(1.02)");
+        dropZone.addEventListener('dragleave', () => dropZone.style.transform = "scale(1)");
+
+        // Handle Drop
+        dropZone.addEventListener('drop', e => {
+            dropZone.style.transform = "scale(1)";
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        });
+
+        // Handle Click (Label automatically triggers input, so NO explicit click listener needed on dropZone)
+        fileInput.addEventListener('change', function() { handleFiles(this.files); });
+
+        // Helper: Format Bytes
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                originalFile = files[0];
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     previewImage.src = e.target.result;
                     analysisSection.style.display = 'block';
+
+                    // 1. File Details
+                    document.getElementById('fileData').innerHTML = `
+                        ${createRow('Name', originalFile.name)}
+                        ${createRow('Size', formatBytes(originalFile.size))}
+                        ${createRow('Type', originalFile.type)}
+                        ${createRow('Modified', new Date(originalFile.lastModified).toLocaleDateString())}
+                    `;
                     
+                    // --- Load Image for Processing ---
                     const img = new Image();
                     img.onload = function() {
-                        stegoCanvas.width = img.width;
-                        stegoCanvas.height = img.height;
-                        ctx.drawImage(img, 0, 0);
+                        const MAX_WIDTH = 1920; 
+                        const MAX_HEIGHT = 1080;
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                        } else {
+                            if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+                        }
+
+                        processCanvas.width = width;
+                        processCanvas.height = height;
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        drawHistogram(width, height);
                     };
                     img.src = e.target.result;
 
-                    // Reset UI
+                    // Reset Inputs
                     document.getElementById('decryptedOutput').style.display = 'none';
                     document.getElementById('secretMsg').value = '';
-                    
-                    // Metadata Analysis
-                    if(file.type !== "image/png") analyzeEXIF(file);
-                    else clearEXIFData();
-                };
-                reader.readAsDataURL(file);
-            }
-        });
+                    document.getElementById('encodePass').value = '';
+                    document.getElementById('decodePass').value = '';
 
-        // --- EXIF Helpers (Standard) ---
-        function createRow(l, v, c = '') { return `<div class="data-row"><span class="label">${l}</span><span class="value ${c}">${v || 'N/A'}</span></div>`; }
-        function clearEXIFData() {
-             document.getElementById('deviceData').innerHTML = '<div style="padding:10px;text-align:center">N/A</div>';
-             document.getElementById('settingsData').innerHTML = '';
-             document.getElementById('locationData').innerHTML = '';
-             document.getElementById('forensicData').innerHTML = '<div style="padding:10px;text-align:center">N/A</div>';
+                    // Run Metadata Analysis
+                    if(originalFile.type !== "image/png") { 
+                         analyzeEXIF(originalFile);
+                    } else {
+                        document.getElementById('deviceData').innerHTML = '<div style="padding:5px;text-align:center;font-size:0.8rem">EXIF limited for PNG</div>';
+                        document.getElementById('settingsData').innerHTML = createRow('Resolution', "Check File Details");
+                        document.getElementById('locationData').innerHTML = '<div style="text-align:center;color:#94a3b8;">N/A</div>';
+                        document.getElementById('forensicData').innerHTML = createRow('Integrity', 'Format not fully supported');
+                    }
+                };
+                reader.readAsDataURL(originalFile);
+            }
         }
+
+        function createRow(label, value, className = '') {
+            return `<div class="data-row"><span class="label">${label}</span><span class="value ${className}">${value || 'N/A'}</span></div>`;
+        }
+
         function analyzeEXIF(file) {
             EXIF.getData(file, function() {
-                document.getElementById('deviceData').innerHTML = `${createRow('Make', EXIF.getTag(this, "Make"))}${createRow('Model', EXIF.getTag(this, "Model"))}`;
-                document.getElementById('settingsData').innerHTML = `${createRow('ISO', EXIF.getTag(this, "ISOSpeedRatings"))}${createRow('Date', EXIF.getTag(this, "DateTimeOriginal"))}`;
-                document.getElementById('forensicData').innerHTML = `${createRow('Software', EXIF.getTag(this, "Software"))}`;
+                const make = EXIF.getTag(this, "Make");
+                const model = EXIF.getTag(this, "Model");
+                document.getElementById('deviceData').innerHTML = `
+                    ${createRow('Make', make)}
+                    ${createRow('Model', model)}
+                    ${createRow('Resolution', `${EXIF.getTag(this, "PixelXDimension")||'?'} x ${EXIF.getTag(this, "PixelYDimension")||'?'}`)}
+                `;
+
+                const iso = EXIF.getTag(this, "ISOSpeedRatings");
+                const exp = EXIF.getTag(this, "ExposureTime");
+                const fnum = EXIF.getTag(this, "FNumber");
+                const focal = EXIF.getTag(this, "FocalLength");
+                const flash = EXIF.getTag(this, "Flash");
+                const wb = EXIF.getTag(this, "WhiteBalance");
+
+                document.getElementById('settingsData').innerHTML = `
+                    ${createRow('Aperture', fnum ? `f/${fnum}` : null)}
+                    ${createRow('Shutter', exp ? `1/${Math.round(1/exp)}s` : null)}
+                    ${createRow('ISO', iso)}
+                    ${createRow('Focal Len', focal ? `${focal}mm` : null)}
+                    ${createRow('Flash', flash ? (String(flash).includes('No') ? 'Off' : 'On') : 'N/A')}
+                    ${createRow('W. Balance', wb == 0 ? 'Auto' : (wb == 1 ? 'Manual' : 'N/A'))}
+                `;
+
+                const software = EXIF.getTag(this, "Software");
+                const dateOriginal = EXIF.getTag(this, "DateTimeOriginal");
+                let status = software ? '<span class="warning">Edited/Processed</span>' : '<span class="safe">Likely Original</span>';
+                document.getElementById('forensicData').innerHTML = `
+                    ${createRow('Software', software)}
+                    ${createRow('Date Taken', dateOriginal)}
+                    ${createRow('Integrity', status)}
+                `;
+
                 const lat = EXIF.getTag(this, "GPSLatitude");
                 const lon = EXIF.getTag(this, "GPSLongitude");
                 if (lat && lon) {
-                    const dLat = (lat[0] + lat[1]/60 + lat[2]/3600) * (EXIF.getTag(this, "GPSLatitudeRef") == "S" ? -1 : 1);
-                    const dLon = (lon[0] + lon[1]/60 + lon[2]/3600) * (EXIF.getTag(this, "GPSLongitudeRef") == "W" ? -1 : 1);
-                    document.getElementById('locationData').innerHTML = `${createRow('Lat', dLat.toFixed(4))}${createRow('Lon', dLon.toFixed(4))}<div style="text-align:center;"><a href="https://maps.google.com/?q=${dLat},${dLon}" target="_blank" class="map-btn">Map</a></div>`;
-                } else document.getElementById('locationData').innerHTML = '<div style="text-align:center;color:#94a3b8">No GPS</div>';
+                    const dLat = convertDMSToDD(lat[0], lat[1], lat[2], EXIF.getTag(this, "GPSLatitudeRef"));
+                    const dLon = convertDMSToDD(lon[0], lon[1], lon[2], EXIF.getTag(this, "GPSLongitudeRef"));
+                    document.getElementById('locationData').innerHTML = `
+                        ${createRow('Lat', dLat.toFixed(5))}
+                        ${createRow('Lon', dLon.toFixed(5))}
+                        <div style="text-align:center;"><a href="https://maps.google.com/?q=${dLat},${dLon}" target="_blank" class="map-btn">View on Map</a></div>
+                    `;
+                } else {
+                    document.getElementById('locationData').innerHTML = '<div style="text-align:center;color:#94a3b8;padding:10px">No GPS Data</div>';
+                }
             });
         }
 
-        // --- UPDATED INVISIBLE QR LOGIC ---
+        function drawHistogram(w, h) {
+            const hCanvas = document.getElementById('histoCanvas');
+            const hCtx = hCanvas.getContext('2d');
+            hCanvas.width = 300; 
+            hCanvas.height = 120;
+            hCtx.clearRect(0,0,300,120);
+
+            const srcData = ctx.getImageData(0, 0, w, h).data;
+            let r = new Array(256).fill(0);
+            let g = new Array(256).fill(0);
+            let b = new Array(256).fill(0);
+            
+            const step = 4;
+            for(let i=0; i<srcData.length; i+=4*step) {
+                r[srcData[i]]++;
+                g[srcData[i+1]]++;
+                b[srcData[i+2]]++;
+            }
+
+            const max = Math.max(...r, ...g, ...b);
+            hCtx.lineWidth = 1.5;
+            hCtx.globalCompositeOperation = 'screen';
+            
+            drawChannel(hCtx, r, '#ff4757', max);
+            drawChannel(hCtx, g, '#2ed573', max);
+            drawChannel(hCtx, b, '#00f2ff', max);
+        }
+
+        function drawChannel(c, data, color, max) {
+            c.beginPath();
+            c.strokeStyle = color;
+            c.moveTo(0, 120);
+            for(let i=0; i<256; i++) {
+                let pct = data[i] / max;
+                let y = 120 - (pct * 110);
+                c.lineTo(i * (300/256), y);
+            }
+            c.stroke();
+        }
+
+        function convertDMSToDD(d, m, s, dir) {
+            let dd = d + m/60 + s/3600;
+            if (dir == "S" || dir == "W") dd *= -1;
+            return dd;
+        }
 
         function switchTab(tab) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             event.target.classList.add('active');
-            document.getElementById('hideTab').style.display = tab === 'hide' ? 'block' : 'none';
-            document.getElementById('readTab').style.display = tab === 'read' ? 'block' : 'none';
+            if(tab === 'hide') {
+                document.getElementById('hideTab').style.display = 'block';
+                document.getElementById('readTab').style.display = 'none';
+            } else {
+                document.getElementById('hideTab').style.display = 'none';
+                document.getElementById('readTab').style.display = 'block';
+            }
         }
 
-        function xorCipher(text, pass) {
+        function xorEncrypt(text, pass) {
             let result = '';
-            for (let i = 0; i < text.length; i++) result += String.fromCharCode(text.charCodeAt(i) ^ pass.charCodeAt(i % pass.length));
+            for (let i = 0; i < text.length; i++) {
+                result += String.fromCharCode(text.charCodeAt(i) ^ pass.charCodeAt(i % pass.length));
+            }
             return result;
         }
 
-        // 1. EMBED (Enhanced Visibility for Robustness)
-        function embedInvisibleQR() {
-            const pass = document.getElementById('encodePass').value;
-            const msg = document.getElementById('secretMsg').value;
-            if (!pass || !msg) return alert("Password and Message are required.");
-
-            const encrypted = "NEX::" + xorCipher(msg, pass);
-            const qrContainer = document.getElementById('qr-code-hidden');
-            qrContainer.innerHTML = '';
-            
-            // Generate High-Res QR
-            new QRCode(qrContainer, {
-                text: encrypted,
-                width: 800, // Large size for better quality
-                height: 800,
-                correctLevel: QRCode.CorrectLevel.H // High error correction
-            });
-
-            setTimeout(() => {
-                const qrImg = qrContainer.querySelector('img');
-                if(!qrImg.src) return alert("QR generation failed, try shorter message.");
-
-                const size = Math.min(stegoCanvas.width, stegoCanvas.height) * 0.8;
-                const x = (stegoCanvas.width - size) / 2;
-                const y = (stegoCanvas.height - size) / 2;
-
-                ctx.save();
-                // 'multiply' darkens the image. We use opacity 0.12 (12%)
-                // This is visible if looked closely but ignored by casual observers.
-                // It is robust enough for Facebook compression.
-                ctx.globalAlpha = 0.12; 
-                ctx.globalCompositeOperation = 'multiply'; 
-                ctx.drawImage(qrImg, x, y, size, size);
-                ctx.restore();
-
-                const link = document.createElement('a');
-                link.download = 'PhotoTrace_Stealth.jpg';
-                link.href = stegoCanvas.toDataURL("image/jpeg", 0.95);
-                link.click();
-                alert("Image encrypted! Send this photo via Messenger/FB.");
-            }, 500);
+        function stringToBinary(str) {
+            let bin = "";
+            for (let i = 0; i < str.length; i++) bin += str[i].charCodeAt(0).toString(2).padStart(8, '0');
+            return bin;
         }
 
-        // 2. SCAN (Enhanced Contrast Algorithm)
-        function scanAndDecode() {
-            const pass = document.getElementById('decodePass').value;
-            const outBox = document.getElementById('decryptedOutput');
-            
-            if(!pass) return alert("Enter password first.");
+        function encodeMessage() {
+            const password = document.getElementById('encodePass').value;
+            const message = document.getElementById('secretMsg').value;
+            if (!password || !message) return alert("Please enter Password & Message.");
 
-            // Get image data
-            const imageData = ctx.getImageData(0, 0, stegoCanvas.width, stegoCanvas.height);
-            const data = imageData.data;
+            const fullMessage = "NEXLO::" + message; 
+            const encrypted = xorEncrypt(fullMessage, password);
+            const binaryMsg = stringToBinary(encrypted) + "00000000"; 
 
-            // --- DEEP SCAN ALGORITHM ---
-            // This loop dramatically increases contrast to find the faint QR code.
-            const contrast = 100; // High contrast factor
-            const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
+            const imgData = ctx.getImageData(0, 0, processCanvas.width, processCanvas.height);
+            const data = imgData.data;
 
-            for (let i = 0; i < data.length; i += 4) {
-                // Convert to grayscale
-                let gray = (data[i] + data[i + 1] + data[i + 2]) / 3;
-                
-                // Apply High Contrast Formula
-                let newColor = factor * (gray - 128) + 128;
-                
-                // Binarize (Make it pure black or white for the reader)
-                // Threshold is set high because 'multiply' makes QR dark
-                newColor = newColor < 180 ? 0 : 255; 
+            if (binaryMsg.length > data.length / 4) return alert("Message too long!");
 
-                data[i] = newColor;     // R
-                data[i+1] = newColor;   // G
-                data[i+2] = newColor;   // B
+            for (let i = 0; i < binaryMsg.length; i++) {
+                let pixelIndex = i * 4; 
+                data[pixelIndex] = (data[pixelIndex] & ~1) | parseInt(binaryMsg[i]);
+            }
+            ctx.putImageData(imgData, 0, 0);
+
+            const link = document.createElement('a');
+            link.download = 'PhotoTrace_Secret.png';
+            link.href = processCanvas.toDataURL("image/png");
+            link.click();
+        }
+
+        function decodeMessage() {
+            const password = document.getElementById('decodePass').value;
+            if (!password) return alert("Please enter password.");
+
+            const imgData = ctx.getImageData(0, 0, processCanvas.width, processCanvas.height);
+            const data = imgData.data;
+            let binaryMsg = "";
+
+            for (let i = 0; i < data.length; i += 4) binaryMsg += (data[i] & 1);
+
+            let rawString = "";
+            for (let i = 0; i < binaryMsg.length; i += 8) {
+                const byte = binaryMsg.substr(i, 8);
+                if (byte === "00000000") break;
+                rawString += String.fromCharCode(parseInt(byte, 2));
+                if (rawString.length > 5000) break; 
             }
 
-            // Note: We are feeding the processed "X-Ray" data to the scanner
-            const code = jsQR(data, stegoCanvas.width, stegoCanvas.height);
-
-            if (code) {
-                let content = code.data;
-                if(content.startsWith("NEX::")) {
-                    try {
-                        content = content.replace("NEX::", "");
-                        const decrypted = xorCipher(content, pass);
-                        outBox.style.display = "block";
-                        outBox.style.color = "#2ed573";
-                        outBox.innerHTML = `<strong><i class="fas fa-check"></i> Success:</strong><br>${decrypted}`;
-                    } catch(e) {
-                         outBox.innerHTML = "Decryption Failed (Wrong Password)";
-                    }
-                } else {
+            const outBox = document.getElementById('decryptedOutput');
+            try {
+                const decrypted = xorEncrypt(rawString, password);
+                if (decrypted.startsWith("NEXLO::")) {
                     outBox.style.display = "block";
-                    outBox.innerHTML = "QR Found but format invalid: " + content;
-                }
-            } else {
+                    outBox.style.color = "#fff";
+                    outBox.innerHTML = `<strong>Success:</strong> <br>${decrypted.replace("NEXLO::", "")}`;
+                } else throw new Error();
+            } catch (e) {
                 outBox.style.display = "block";
                 outBox.style.color = "#ff4757";
-                outBox.innerHTML = "Scan Failed. <br><small>Image might be too dark or compressed.</small>";
-                
-                // Debug: Show user what the computer "saw" (Optional, helps understand failure)
-                // ctx.putImageData(imageData, 0, 0); 
+                outBox.innerHTML = "Error: Invalid Password or No Message.";
             }
         }
     </script>
