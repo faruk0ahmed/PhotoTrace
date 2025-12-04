@@ -307,6 +307,9 @@
 
                     <!-- Hide Message Form -->
                     <div id="hideTab">
+                        <div style="font-size:0.8rem; color:#94a3b8; margin-bottom:10px;">
+                            * Image will be resized (Max 1920px) to keep file size low.
+                        </div>
                         <input type="password" id="encodePass" class="stego-input" placeholder="Set Password (Required)">
                         <textarea id="secretMsg" class="stego-input" rows="3" placeholder="Write your secret message here..."></textarea>
                         <button class="action-btn" onclick="encodeMessage()">
@@ -343,6 +346,15 @@
 
         // --- File Handling ---
         fileInput.addEventListener('change', function() { handleFiles(this.files); });
+        
+        const dropZone = document.getElementById('dropZone');
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, e => {
+                e.preventDefault();
+                e.stopPropagation();
+            }, false);
+        });
+        dropZone.addEventListener('drop', e => handleFiles(e.dataTransfer.files), false);
 
         function handleFiles(files) {
             if (files.length > 0) {
@@ -353,12 +365,35 @@
                     previewImage.src = e.target.result;
                     analysisSection.style.display = 'block';
                     
-                    // Load image into Canvas for Steganography
+                    // --- Load & Resize Logic for Steganography ---
                     const img = new Image();
                     img.onload = function() {
-                        stegoCanvas.width = img.width;
-                        stegoCanvas.height = img.height;
-                        ctx.drawImage(img, 0, 0);
+                        // Max Dimensions (Full HD)
+                        const MAX_WIDTH = 1920; 
+                        const MAX_HEIGHT = 1080;
+                        let width = img.width;
+                        let height = img.height;
+
+                        // Calculate new aspect ratio
+                        if (width > height) {
+                            if (width > MAX_WIDTH) {
+                                height *= MAX_WIDTH / width;
+                                width = MAX_WIDTH;
+                            }
+                        } else {
+                            if (height > MAX_HEIGHT) {
+                                width *= MAX_HEIGHT / height;
+                                height = MAX_HEIGHT;
+                            }
+                        }
+
+                        // Set canvas size to new dimensions
+                        stegoCanvas.width = width;
+                        stegoCanvas.height = height;
+                        
+                        // Draw resized image
+                        ctx.drawImage(img, 0, 0, width, height);
+                        console.log(`Image resized to: ${width}x${height} for Steganography`);
                     };
                     img.src = e.target.result;
 
@@ -369,7 +404,7 @@
                     document.getElementById('decodePass').value = '';
 
                     // Run Metadata Analysis
-                    if(originalFile.type !== "image/png") { // EXIF usually for JPG/TIFF
+                    if(originalFile.type !== "image/png") { 
                          analyzeEXIF(originalFile);
                     } else {
                         document.getElementById('deviceData').innerHTML = '<div style="padding:10px;text-align:center">PNG formats may not contain full EXIF data.</div>';
@@ -452,7 +487,7 @@
             }
         }
 
-        // Encryption Helper (Simple XOR for demo)
+        // Encryption Helper (XOR)
         function xorEncrypt(text, pass) {
             let result = '';
             for (let i = 0; i < text.length; i++) {
@@ -461,22 +496,12 @@
             return result;
         }
 
-        // Convert string to binary
         function stringToBinary(str) {
             let bin = "";
             for (let i = 0; i < str.length; i++) {
                 bin += str[i].charCodeAt(0).toString(2).padStart(8, '0');
             }
             return bin;
-        }
-
-        // Convert binary to string
-        function binaryToString(bin) {
-            let str = "";
-            for (let i = 0; i < bin.length; i += 8) {
-                str += String.fromCharCode(parseInt(bin.substr(i, 8), 2));
-            }
-            return str;
         }
 
         function encodeMessage() {
@@ -488,45 +513,37 @@
                 return;
             }
 
-            // Add a header "NEXLO" to verify correct decryption later
+            // Header for verification
             const fullMessage = "NEXLO::" + message; 
             const encrypted = xorEncrypt(fullMessage, password);
             const binaryMsg = stringToBinary(encrypted);
-            
-            // Add null terminator
             const finalBinary = binaryMsg + "00000000"; 
 
             const imgData = ctx.getImageData(0, 0, stegoCanvas.width, stegoCanvas.height);
             const data = imgData.data;
 
             if (finalBinary.length > data.length / 4) {
-                alert("Message is too long for this image!");
+                alert("Message is too long, even for this image!");
                 return;
             }
 
-            // Embed bits in LSB
+            // Embed bits
             for (let i = 0; i < finalBinary.length; i++) {
-                // Modify the Red channel (every 4th byte is Alpha, we skip or use R/G/B)
-                // Let's use Red (data[i*4]), Green (data[i*4+1]), Blue (data[i*4+2]) sequentially?
-                // Simplest: Just modify Red channel of consecutive pixels
                 let pixelIndex = i * 4; 
-                
-                // Clear LSB
-                data[pixelIndex] = data[pixelIndex] & ~1;
-                // Set LSB
+                data[pixelIndex] = data[pixelIndex] & ~1; // Clear LSB
                 if (finalBinary[i] === '1') {
-                    data[pixelIndex] = data[pixelIndex] | 1;
+                    data[pixelIndex] = data[pixelIndex] | 1; // Set LSB
                 }
             }
 
             ctx.putImageData(imgData, 0, 0);
 
-            // Create Download Link
+            // Download
             const link = document.createElement('a');
-            link.download = 'PhotoTrace_Secret.png'; // Must be PNG to preserve bits
+            link.download = 'PhotoTrace_Secret.png';
             link.href = stegoCanvas.toDataURL("image/png");
             link.click();
-            alert("Image with hidden message downloaded! \nNote: Keep it in PNG format.");
+            alert("Image downloaded! File size optimized.");
         }
 
         function decodeMessage() {
@@ -542,48 +559,37 @@
 
             // Read Bits
             for (let i = 0; i < data.length; i += 4) {
-                // Extract LSB from Red channel
                 const bit = data[i] & 1;
                 binaryMsg += bit;
             }
 
-            // Convert to string in chunks to find terminator
-            // This is computationally heavy for large images, so usually we'd define length header.
-            // For this demo, we just grab first 5000 chars or until null
-            
             let rawString = "";
-            let foundTerminator = false;
-
-            // Optimizing: Process bytes until null terminator
+            
+            // Convert until null terminator
             for (let i = 0; i < binaryMsg.length; i += 8) {
                 const byte = binaryMsg.substr(i, 8);
-                if (byte === "00000000") {
-                    foundTerminator = true;
-                    break;
-                }
+                if (byte === "00000000") break;
                 rawString += String.fromCharCode(parseInt(byte, 2));
-                // Safety break
-                if (rawString.length > 2000) break; 
+                if (rawString.length > 5000) break; // Safety limit
             }
 
+            const outBox = document.getElementById('decryptedOutput');
             try {
                 const decrypted = xorEncrypt(rawString, password);
-                const outBox = document.getElementById('decryptedOutput');
                 
                 if (decrypted.startsWith("NEXLO::")) {
                     outBox.style.display = "block";
                     outBox.style.color = "#fff";
                     outBox.innerHTML = `<strong>Success:</strong> <br>${decrypted.replace("NEXLO::", "")}`;
                 } else {
-                    outBox.style.display = "block";
-                    outBox.style.color = "#ff4757";
-                    outBox.innerHTML = "Error: Invalid Password or No Message found.";
+                    throw new Error("Invalid");
                 }
             } catch (e) {
-                alert("Error processing image.");
+                outBox.style.display = "block";
+                outBox.style.color = "#ff4757";
+                outBox.innerHTML = "Error: Invalid Password or No Message found.";
             }
         }
-
     </script>
 </body>
 </html>
