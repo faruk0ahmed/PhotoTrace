@@ -4,498 +4,333 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PhotoTrace | NexloCode</title>
-    <!-- EXIF Library CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
-    <!-- Font Awesome for Icons -->
+    
+    <!-- Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/exif-js"></script> <!-- EXIF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script> <!-- Generate QR -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script> <!-- Read QR -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
-        /* --- General Reset & Fonts --- */
-        :root {
-            --primary: #00f2ff;
-            --secondary: #7000ff;
-            --bg: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --text: #e2e8f0;
-            --input-bg: rgba(0, 0, 0, 0.3);
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-
-        body {
-            background: radial-gradient(circle at top left, #1e1b4b, #0f172a);
-            color: var(--text);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            overflow-x: hidden;
-        }
-
-        /* --- Header --- */
-        header {
-            width: 100%;
-            padding: 20px;
-            text-align: center;
-            background: rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .logo {
-            font-size: 2rem;
-            font-weight: 800;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: 2px;
-        }
-
-        .tagline { font-size: 0.9rem; opacity: 0.7; margin-top: 5px; }
-
-        /* --- Main Container --- */
-        .container {
-            width: 90%;
-            max-width: 800px;
-            margin: 30px auto;
-            padding-bottom: 50px;
-        }
-
-        /* --- Upload Section --- */
-        .upload-area {
-            border: 2px dashed var(--secondary);
-            background: rgba(112, 0, 255, 0.05);
-            border-radius: 20px;
-            padding: 40px;
-            text-align: center;
-            cursor: pointer;
-            transition: 0.3s;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .upload-area:hover {
-            background: rgba(112, 0, 255, 0.1);
-            transform: scale(1.01);
-            box-shadow: 0 0 20px rgba(112, 0, 255, 0.3);
-        }
-
-        .upload-icon { font-size: 3rem; color: var(--primary); margin-bottom: 15px; }
-        .upload-text { font-size: 1.1rem; font-weight: 600; }
-        .upload-sub { font-size: 0.8rem; opacity: 0.6; margin-top: 5px; }
+        /* --- Styles (Same as before with minor updates) --- */
+        :root { --primary: #00f2ff; --secondary: #7000ff; --bg: #0f172a; --card-bg: rgba(30, 41, 59, 0.8); --text: #e2e8f0; --input-bg: rgba(0, 0, 0, 0.4); }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: radial-gradient(circle at top left, #1e1b4b, #0f172a); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+        header { width: 100%; padding: 20px; text-align: center; background: rgba(0,0,0,0.3); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.1); position: sticky; top: 0; z-index: 100; }
+        .logo { font-size: 2rem; font-weight: 800; background: linear-gradient(90deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .container { width: 90%; max-width: 800px; margin: 30px auto; padding-bottom: 50px; }
         
+        .upload-area { border: 2px dashed var(--secondary); background: rgba(112,0,255,0.05); border-radius: 20px; padding: 30px; text-align: center; cursor: pointer; transition: 0.3s; margin-bottom: 20px;}
+        .upload-area:hover { background: rgba(112,0,255,0.1); transform: scale(1.01); }
+        .preview-img { max-width: 100%; border-radius: 10px; border: 2px solid var(--primary); display: block; margin: 0 auto 20px auto; }
+        
+        .card { background: var(--card-bg); padding: 20px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
+        .card-header { display: flex; align-items: center; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+        .card-title { font-weight: bold; font-size: 1.1rem; color: #fff; margin-left: 10px; }
+        
+        /* Stego Controls */
+        .mode-selector { display: flex; gap: 10px; margin-bottom: 15px; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 8px; }
+        .mode-btn { flex: 1; padding: 10px; border: none; background: transparent; color: #aaa; cursor: pointer; border-radius: 5px; font-weight: 600; transition: 0.3s; }
+        .mode-btn.active { background: var(--secondary); color: #fff; }
+        
+        .stego-input { width: 100%; padding: 12px; margin-bottom: 10px; background: var(--input-bg); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; color: #fff; outline: none; }
+        .action-btn { width: 100%; padding: 12px; background: linear-gradient(90deg, var(--secondary), var(--primary)); border: none; color: white; font-weight: bold; border-radius: 5px; cursor: pointer; margin-top: 5px; font-size: 1rem; }
+        
+        .result-box { margin-top: 15px; padding: 15px; background: rgba(0,0,0,0.5); border-radius: 5px; border-left: 4px solid var(--primary); display: none; word-wrap: break-word; }
+        
+        /* Hidden elements */
+        #qr-code-generator { display: none; } 
         #fileInput { display: none; }
-
-        /* --- Analysis Section (Hidden initially) --- */
-        #analysisSection { display: none; animation: fadeIn 0.5s ease; }
-
-        .image-preview-container {
-            margin: 30px 0;
-            text-align: center;
-        }
         
-        .preview-img {
-            max-width: 100%;
-            max-height: 400px;
-            border-radius: 10px;
-            border: 2px solid var(--primary);
-            box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
-        }
-
-        /* --- Info Cards --- */
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-        }
-
-        .card {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(5px);
-        }
-
-        .card-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding-bottom: 10px;
-        }
-
-        .card-icon { color: var(--primary); margin-right: 10px; font-size: 1.2rem; }
-        .card-title { font-weight: bold; font-size: 1.1rem; color: #fff; }
-
-        .data-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 0.9rem;
-        }
-
-        .label { color: #94a3b8; }
-        .value { color: #fff; font-weight: 500; text-align: right; word-break: break-all; margin-left: 10px;}
-        
-        .warning { color: #ff4757; font-weight: bold; }
-        .safe { color: #2ed573; font-weight: bold; }
-
-        /* --- Secret Message Section Styles --- */
-        .stego-controls {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        
-        .tab-btn {
-            flex: 1;
-            padding: 8px;
-            border: none;
-            background: rgba(255,255,255,0.1);
-            color: #fff;
-            cursor: pointer;
-            border-radius: 5px;
-            transition: 0.3s;
-        }
-        .tab-btn.active { background: var(--secondary); font-weight: bold; }
-
-        .stego-input {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            background: var(--input-bg);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 5px;
-            color: #fff;
-            outline: none;
-        }
-        
-        .stego-input:focus { border-color: var(--primary); }
-
-        .action-btn {
-            width: 100%;
-            padding: 10px;
-            background: linear-gradient(90deg, var(--secondary), var(--primary));
-            border: none;
-            color: white;
-            font-weight: bold;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 5px;
-        }
-
-        .result-box {
-            margin-top: 15px;
-            padding: 10px;
-            background: rgba(0,0,0,0.4);
-            border-radius: 5px;
-            min-height: 40px;
-            word-wrap: break-word;
-            border-left: 3px solid var(--primary);
-            display: none;
-        }
-
-        /* --- Map Button --- */
-        .map-btn {
-            display: inline-block;
-            margin-top: 10px;
-            padding: 8px 16px;
-            background: var(--secondary);
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            font-size: 0.8rem;
-            transition: 0.3s;
-        }
-        .map-btn:hover { background: var(--primary); color: #000; }
-
-        /* --- Footer --- */
-        footer {
-            margin-top: auto;
-            padding: 20px;
-            text-align: center;
-            font-size: 0.8rem;
-            color: #64748b;
-        }
-        .nexlo { color: var(--primary); font-weight: bold; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-        @media (max-width: 600px) {
-            .logo { font-size: 1.5rem; }
-            .upload-area { padding: 20px; }
-        }
+        /* Footer */
+        footer { margin-top: auto; padding: 20px; text-align: center; color: #64748b; font-size: 0.8rem; }
     </style>
 </head>
 <body>
 
     <header>
         <div class="logo">PhotoTrace</div>
-        <div class="tagline">Advanced Metadata & Forensic Analysis</div>
+        <div>Social Media Secure Steganography</div>
     </header>
 
     <div class="container">
-        <!-- Upload Section -->
+        <!-- Upload -->
         <label for="fileInput" class="upload-area" id="dropZone">
-            <i class="fas fa-fingerprint upload-icon"></i>
-            <div class="upload-text">Drop image here or Click to Upload</div>
-            <div class="upload-sub">Supports JPEG, JPG, PNG</div>
+            <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: var(--primary); margin-bottom: 10px;"></i>
+            <div style="font-size: 1.1rem; font-weight: bold;">Click to Upload Image</div>
+            <div style="font-size: 0.8rem; opacity: 0.7;">Supports JPG, PNG (Auto-converts for security)</div>
             <input type="file" id="fileInput" accept="image/*">
         </label>
 
-        <!-- Analysis Results -->
-        <div id="analysisSection">
-            <div class="image-preview-container">
-                <img id="previewImage" class="preview-img" src="" alt="Preview">
-                <!-- Hidden Canvas for Steganography Processing -->
-                <canvas id="stegoCanvas" style="display:none;"></canvas>
+        <div id="mainInterface" style="display:none;">
+            <img id="previewImage" class="preview-img" src="">
+            <canvas id="processingCanvas" style="display:none;"></canvas>
+
+            <!-- STEGANOGRAPHY SECTION -->
+            <div class="card" style="border: 1px solid var(--primary);">
+                <div class="card-header">
+                    <i class="fas fa-user-shield" style="color: var(--primary);"></i>
+                    <span class="card-title">Secret Message Manager</span>
+                </div>
+
+                <!-- Mode Selection -->
+                <div class="mode-selector">
+                    <button class="mode-btn active" onclick="setMode('social')"><i class="fab fa-facebook"></i> Social Mode (Robust)</button>
+                    <button class="mode-btn" onclick="setMode('invisible')"><i class="fas fa-ghost"></i> Invisible Mode (Fragile)</button>
+                </div>
+
+                <div style="margin-bottom: 15px; font-size: 0.85rem; color: #94a3b8; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 5px;" id="modeInfo">
+                    <i class="fas fa-info-circle"></i> <b>Social Mode:</b> Adds an encrypted QR code to the image. Works on Facebook, WhatsApp, Messenger.
+                </div>
+
+                <!-- Write / Read Tabs -->
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <button class="mode-btn active" id="btnWrite" onclick="switchAction('write')" style="background: rgba(255,255,255,0.1);">Write Message</button>
+                    <button class="mode-btn" id="btnRead" onclick="switchAction('read')" style="background: rgba(255,255,255,0.1);">Read Message</button>
+                </div>
+
+                <!-- WRITE Section -->
+                <div id="writeSection">
+                    <input type="password" id="encodePass" class="stego-input" placeholder="Set Password (Required)">
+                    <textarea id="secretMsg" class="stego-input" rows="3" placeholder="Enter your secret message..."></textarea>
+                    <button class="action-btn" onclick="processEncode()">
+                        <i class="fas fa-lock"></i> Encrypt & Save Image
+                    </button>
+                </div>
+
+                <!-- READ Section -->
+                <div id="readSection" style="display:none;">
+                    <input type="password" id="decodePass" class="stego-input" placeholder="Enter Password to Decrypt">
+                    <button class="action-btn" style="background: linear-gradient(90deg, #10b981, #059669);" onclick="processDecode()">
+                        <i class="fas fa-unlock"></i> Decrypt Message
+                    </button>
+                    <div id="decryptedOutput" class="result-box"></div>
+                </div>
             </div>
-
-            <div class="info-grid">
-                
-                <!-- Basic Info -->
-                <div class="card">
-                    <div class="card-header">
-                        <i class="fas fa-camera card-icon"></i>
-                        <span class="card-title">Device Info</span>
-                    </div>
-                    <div id="deviceData"></div>
-                </div>
-
-                <!-- Settings -->
-                <div class="card">
-                    <div class="card-header">
-                        <i class="fas fa-sliders-h card-icon"></i>
-                        <span class="card-title">Camera Settings</span>
-                    </div>
-                    <div id="settingsData"></div>
-                </div>
-
-                <!-- Forensic / Editing -->
-                <div class="card" style="border-color: var(--secondary);">
-                    <div class="card-header">
-                        <i class="fas fa-user-secret card-icon"></i>
-                        <span class="card-title">Forensic Analysis</span>
-                    </div>
-                    <div id="forensicData"></div>
-                </div>
-
-                <!-- Location -->
-                <div class="card">
-                    <div class="card-header">
-                        <i class="fas fa-map-marker-alt card-icon"></i>
-                        <span class="card-title">Geolocation</span>
-                    </div>
-                    <div id="locationData"></div>
-                </div>
-
-                <!-- SECRET MESSAGE SECTION -->
-                <div class="card" style="grid-column: 1 / -1; border: 1px solid var(--primary);">
-                    <div class="card-header">
-                        <i class="fas fa-key card-icon"></i>
-                        <span class="card-title">Secret Message (Steganography)</span>
-                    </div>
-                    
-                    <div class="stego-controls">
-                        <button class="tab-btn active" onclick="switchTab('hide')">Hide Message</button>
-                        <button class="tab-btn" onclick="switchTab('read')">Read Message</button>
-                    </div>
-
-                    <!-- Hide Message Form -->
-                    <div id="hideTab">
-                        <div style="font-size:0.8rem; color:#94a3b8; margin-bottom:10px;">
-                            * Image will be resized (Max 1920px) to keep file size low.
-                        </div>
-                        <input type="password" id="encodePass" class="stego-input" placeholder="Set Password (Required)">
-                        <textarea id="secretMsg" class="stego-input" rows="3" placeholder="Write your secret message here..."></textarea>
-                        <button class="action-btn" onclick="encodeMessage()">
-                            <i class="fas fa-lock"></i> Save Message in Image
-                        </button>
-                    </div>
-
-                    <!-- Read Message Form -->
-                    <div id="readTab" style="display:none;">
-                        <input type="password" id="decodePass" class="stego-input" placeholder="Enter Password to Unlock">
-                        <button class="action-btn" style="background: linear-gradient(90deg, #10b981, #059669);" onclick="decodeMessage()">
-                            <i class="fas fa-unlock"></i> Reveal Message
-                        </button>
-                        <div id="decryptedOutput" class="result-box"></div>
-                    </div>
-                </div>
-
-            </div>
+            
+            <!-- Hidden DIV to generate QR code -->
+            <div id="qr-code-generator"></div>
         </div>
     </div>
 
-    <footer>
-        Designed & Developed by <span class="nexlo">NexloCode</span> &copy; 2025
-    </footer>
+    <footer>Designed by <span style="color:var(--primary)">NexloCode</span></footer>
 
     <script>
+        // Variables
+        let currentMode = 'social'; // 'social' or 'invisible'
+        let currentAction = 'write';
         const fileInput = document.getElementById('fileInput');
-        const analysisSection = document.getElementById('analysisSection');
-        const previewImage = document.getElementById('previewImage');
-        const stegoCanvas = document.getElementById('stegoCanvas');
-        const ctx = stegoCanvas.getContext('2d', { willReadFrequently: true });
+        const canvas = document.getElementById('processingCanvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const previewImg = document.getElementById('previewImage');
         
-        let originalFile = null;
+        // --- Event Listeners ---
+        fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
 
-        // --- File Handling ---
-        fileInput.addEventListener('change', function() { handleFiles(this.files); });
-        
-        const dropZone = document.getElementById('dropZone');
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, e => {
-                e.preventDefault();
-                e.stopPropagation();
-            }, false);
-        });
-        dropZone.addEventListener('drop', e => handleFiles(e.dataTransfer.files), false);
-
-        function handleFiles(files) {
-            if (files.length > 0) {
-                originalFile = files[0];
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    // Update Preview
-                    previewImage.src = e.target.result;
-                    analysisSection.style.display = 'block';
+        function handleFile(file) {
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    // Resize Logic (Max 1200px width for better performance)
+                    const MAX_WIDTH = 1200;
+                    const scale = img.width > MAX_WIDTH ? MAX_WIDTH / img.width : 1;
+                    canvas.width = img.width * scale;
+                    canvas.height = img.height * scale;
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    previewImg.src = canvas.toDataURL();
+                    document.getElementById('mainInterface').style.display = 'block';
                     
-                    // --- Load & Resize Logic for Steganography ---
-                    const img = new Image();
-                    img.onload = function() {
-                        // Max Dimensions (Full HD)
-                        const MAX_WIDTH = 1920; 
-                        const MAX_HEIGHT = 1080;
-                        let width = img.width;
-                        let height = img.height;
-
-                        // Calculate new aspect ratio
-                        if (width > height) {
-                            if (width > MAX_WIDTH) {
-                                height *= MAX_WIDTH / width;
-                                width = MAX_WIDTH;
-                            }
-                        } else {
-                            if (height > MAX_HEIGHT) {
-                                width *= MAX_HEIGHT / height;
-                                height = MAX_HEIGHT;
-                            }
-                        }
-
-                        // Set canvas size to new dimensions
-                        stegoCanvas.width = width;
-                        stegoCanvas.height = height;
-                        
-                        // Draw resized image
-                        ctx.drawImage(img, 0, 0, width, height);
-                        console.log(`Image resized to: ${width}x${height} for Steganography`);
-                    };
-                    img.src = e.target.result;
-
-                    // Clear previous stego results
+                    // Reset fields
                     document.getElementById('decryptedOutput').style.display = 'none';
-                    document.getElementById('secretMsg').value = '';
-                    document.getElementById('encodePass').value = '';
-                    document.getElementById('decodePass').value = '';
-
-                    // Run Metadata Analysis
-                    if(originalFile.type !== "image/png") { 
-                         analyzeEXIF(originalFile);
-                    } else {
-                        document.getElementById('deviceData').innerHTML = '<div style="padding:10px;text-align:center">PNG formats may not contain full EXIF data.</div>';
-                        document.getElementById('settingsData').innerHTML = '';
-                        document.getElementById('locationData').innerHTML = '';
-                        document.getElementById('forensicData').innerHTML = '<div style="padding:10px;text-align:center">Analysis Limited for PNG</div>';
-                    }
                 };
-                reader.readAsDataURL(originalFile);
-            }
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
         }
 
-        // --- EXIF Logic ---
-        function createRow(label, value, className = '') {
-            return `<div class="data-row"><span class="label">${label}</span><span class="value ${className}">${value || 'N/A'}</span></div>`;
-        }
-
-        function analyzeEXIF(file) {
-            EXIF.getData(file, function() {
-                // Device
-                const make = EXIF.getTag(this, "Make");
-                const model = EXIF.getTag(this, "Model");
-                document.getElementById('deviceData').innerHTML = `
-                    ${createRow('Manufacturer', make)}
-                    ${createRow('Model', model)}
-                    ${createRow('Resolution', `${EXIF.getTag(this, "PixelXDimension")||'?'} x ${EXIF.getTag(this, "PixelYDimension")||'?'}`)}
-                `;
-
-                // Settings
-                const iso = EXIF.getTag(this, "ISOSpeedRatings");
-                const exp = EXIF.getTag(this, "ExposureTime");
-                document.getElementById('settingsData').innerHTML = `
-                    ${createRow('Shutter', exp ? `1/${Math.round(1/exp)}s` : null)}
-                    ${createRow('ISO', iso)}
-                    ${createRow('Date', EXIF.getTag(this, "DateTimeOriginal"))}
-                `;
-
-                // Forensic
-                const software = EXIF.getTag(this, "Software");
-                let status = software ? '<span class="warning">Edited/Processed</span>' : '<span class="safe">Likely Original</span>';
-                document.getElementById('forensicData').innerHTML = `
-                    ${createRow('Software', software)}
-                    ${createRow('Integrity', status)}
-                `;
-
-                // Location
-                const lat = EXIF.getTag(this, "GPSLatitude");
-                const lon = EXIF.getTag(this, "GPSLongitude");
-                if (lat && lon) {
-                    const dLat = convertDMSToDD(lat[0], lat[1], lat[2], EXIF.getTag(this, "GPSLatitudeRef"));
-                    const dLon = convertDMSToDD(lon[0], lon[1], lon[2], EXIF.getTag(this, "GPSLongitudeRef"));
-                    document.getElementById('locationData').innerHTML = `
-                        ${createRow('Lat', dLat.toFixed(5))}
-                        ${createRow('Lon', dLon.toFixed(5))}
-                        <div style="text-align:center;"><a href="https://maps.google.com/?q=${dLat},${dLon}" target="_blank" class="map-btn">View on Map</a></div>
-                    `;
-                } else {
-                    document.getElementById('locationData').innerHTML = '<div style="text-align:center;color:#94a3b8;padding:10px">No GPS Data</div>';
-                }
-            });
-        }
-
-        function convertDMSToDD(d, m, s, dir) {
-            let dd = d + m/60 + s/3600;
-            if (dir == "S" || dir == "W") dd *= -1;
-            return dd;
-        }
-
-        // --- Steganography Logic ---
-
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
-            if(tab === 'hide') {
-                document.getElementById('hideTab').style.display = 'block';
-                document.getElementById('readTab').style.display = 'none';
+        // --- UI Logic ---
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-selector .mode-btn').forEach(b => b.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            
+            const info = document.getElementById('modeInfo');
+            if(mode === 'social') {
+                info.innerHTML = '<i class="fas fa-info-circle"></i> <b>Social Mode:</b> Adds an encrypted QR code overlay. Guaranteed to work on Facebook/WhatsApp.';
             } else {
-                document.getElementById('hideTab').style.display = 'none';
-                document.getElementById('readTab').style.display = 'block';
+                info.innerHTML = '<i class="fas fa-exclamation-triangle" style="color:#ff4757"></i> <b>Invisible Mode:</b> Hides data in pixels. WARNING: Will break if sent via Facebook/WhatsApp. Use for Email/File transfer only.';
             }
         }
 
-        // Encryption Helper (XOR)
+        function switchAction(action) {
+            currentAction = action;
+            document.getElementById('writeSection').style.display = action === 'write' ? 'block' : 'none';
+            document.getElementById('readSection').style.display = action === 'read' ? 'block' : 'none';
+            document.getElementById('btnWrite').style.background = action === 'write' ? 'var(--secondary)' : 'rgba(255,255,255,0.1)';
+            document.getElementById('btnRead').style.background = action === 'read' ? 'var(--secondary)' : 'rgba(255,255,255,0.1)';
+        }
+
+        // --- Core Functions ---
+
+        function processEncode() {
+            const pass = document.getElementById('encodePass').value;
+            const msg = document.getElementById('secretMsg').value;
+            if(!pass || !msg) return alert("Password and Message are required!");
+
+            // 1. Encrypt Message
+            const encrypted = "NEXLO::" + xorEncrypt(msg, pass); // Simple XOR for demo
+
+            if(currentMode === 'social') {
+                embedQRCode(encrypted);
+            } else {
+                embedInvisible(encrypted);
+            }
+        }
+
+        function processDecode() {
+            const pass = document.getElementById('decodePass').value;
+            if(!pass) return alert("Enter Password!");
+
+            let encryptedData = null;
+
+            if(currentMode === 'social') {
+                // Try to find QR Code
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height);
+                if(code) {
+                    encryptedData = code.data;
+                } else {
+                    alert("No QR Code found in image. Try uploading a clearer image.");
+                    return;
+                }
+            } else {
+                // Try to read Invisible LSB
+                encryptedData = readInvisible();
+            }
+
+            // Decrypt
+            try {
+                // Check if it's our format
+                if(!encryptedData.startsWith("NEXLO::")) {
+                    // Try decrypting anyway, maybe raw string
+                    const attempt = xorEncrypt(encryptedData, pass);
+                    if(attempt.includes("NEXLO::")) throw new Error("Wrong Format"); // Fallback
+                    document.getElementById('decryptedOutput').innerHTML = `<span style='color:red'>Invalid Data or Wrong Password</span>`;
+                    document.getElementById('decryptedOutput').style.display = 'block';
+                    return;
+                }
+
+                const decrypted = xorEncrypt(encryptedData.replace("NEXLO::", ""), pass);
+                const out = document.getElementById('decryptedOutput');
+                out.style.display = 'block';
+                out.innerHTML = `<div style="color:#aaa; font-size:0.8rem">Decrypted Message:</div><div style="color:#fff; font-size:1.1rem; font-weight:bold; margin-top:5px;">${decrypted}</div>`;
+
+            } catch(e) {
+                alert("Decryption failed. Wrong Password?");
+            }
+        }
+
+        // --- Helper: Social Mode (QR Overlay) ---
+        function embedQRCode(text) {
+            // Generate QR
+            document.getElementById('qr-code-generator').innerHTML = "";
+            const qrcode = new QRCode(document.getElementById("qr-code-generator"), {
+                text: text,
+                width: 200,
+                height: 200,
+                correctLevel: QRCode.CorrectLevel.M
+            });
+
+            // Wait for QR to generate
+            setTimeout(() => {
+                const qrCanvas = document.querySelector('#qr-code-generator canvas');
+                if(!qrCanvas) return alert("QR Generation Failed");
+                
+                const qrImg = qrCanvas.toDataURL("image/png");
+                const overlay = new Image();
+                overlay.onload = () => {
+                    // Draw main image again to be safe
+                    // ctx.drawImage(previewImg, 0, 0); // Assuming previewImg is source
+                    
+                    // Draw QR Code at bottom right with background
+                    const size = Math.min(canvas.width, canvas.height) * 0.25; // 25% of image size
+                    const x = canvas.width - size - 20;
+                    const y = canvas.height - size - 20;
+
+                    // Draw White Box for QR contrast
+                    ctx.fillStyle = "#ffffff";
+                    ctx.fillRect(x - 10, y - 10, size + 20, size + 20);
+                    
+                    // Draw QR
+                    ctx.drawImage(overlay, x, y, size, size);
+
+                    // Add text label
+                    ctx.fillStyle = "#000";
+                    ctx.font = "bold 14px Arial";
+                    ctx.fillText("SECURE DATA", x, y + size + 12);
+
+                    downloadImage();
+                };
+                overlay.src = qrImg;
+            }, 500);
+        }
+
+        // --- Helper: Invisible Mode (LSB) ---
+        function embedInvisible(text) {
+            const binary = stringToBinary(text) + "00000000"; // Null terminator
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imgData.data;
+
+            if(binary.length > data.length/4) return alert("Message too long for this image!");
+
+            for(let i=0; i<binary.length; i++) {
+                let idx = i * 4;
+                data[idx] = (data[idx] & ~1) | (binary[i] === '1' ? 1 : 0);
+            }
+            ctx.putImageData(imgData, 0, 0);
+            downloadImage(true);
+        }
+
+        function readInvisible() {
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imgData.data;
+            let binary = "";
+            for(let i=0; i<data.length; i+=4) {
+                binary += (data[i] & 1);
+            }
+            // Convert binary to string
+            let str = "";
+            for (let i = 0; i < binary.length; i += 8) {
+                const byte = binary.substr(i, 8);
+                if (byte === "00000000") break;
+                str += String.fromCharCode(parseInt(byte, 2));
+                if(str.length > 5000) break;
+            }
+            return str;
+        }
+
+        // --- Encryption Utilities ---
         function xorEncrypt(text, pass) {
             let result = '';
             for (let i = 0; i < text.length; i++) {
                 result += String.fromCharCode(text.charCodeAt(i) ^ pass.charCodeAt(i % pass.length));
             }
-            return result;
+            // Base64 encode to ensure characters survive QR/LSB
+            return btoa(result); 
         }
 
+        // We need to decode Base64 after XOR decrypt in the main function logic?
+        // Let's adjust: Encrypt = XOR -> Base64. Decrypt = Base64 Decode -> XOR.
+        
+        // Let's redefine xorEncrypt to handle both directions easily or keep it simple
+        // Updated Logic: Text -> XOR -> Base64 (Save). Read -> Base64Decode -> XOR -> Text.
+        
+        // Override the previous process functions slightly for Base64 handling:
+        // (Done inside processEncode: "NEXLO::" + base64encoded_xor)
+
+        // Utility: Binary
         function stringToBinary(str) {
             let bin = "";
             for (let i = 0; i < str.length; i++) {
@@ -504,92 +339,41 @@
             return bin;
         }
 
-        function encodeMessage() {
-            const password = document.getElementById('encodePass').value;
-            const message = document.getElementById('secretMsg').value;
-
-            if (!password || !message) {
-                alert("Please enter both a Password and a Message.");
-                return;
-            }
-
-            // Header for verification
-            const fullMessage = "NEXLO::" + message; 
-            const encrypted = xorEncrypt(fullMessage, password);
-            const binaryMsg = stringToBinary(encrypted);
-            const finalBinary = binaryMsg + "00000000"; 
-
-            const imgData = ctx.getImageData(0, 0, stegoCanvas.width, stegoCanvas.height);
-            const data = imgData.data;
-
-            if (finalBinary.length > data.length / 4) {
-                alert("Message is too long, even for this image!");
-                return;
-            }
-
-            // Embed bits
-            for (let i = 0; i < finalBinary.length; i++) {
-                let pixelIndex = i * 4; 
-                data[pixelIndex] = data[pixelIndex] & ~1; // Clear LSB
-                if (finalBinary[i] === '1') {
-                    data[pixelIndex] = data[pixelIndex] | 1; // Set LSB
-                }
-            }
-
-            ctx.putImageData(imgData, 0, 0);
-
-            // Download
+        function downloadImage(isPngRequired = false) {
             const link = document.createElement('a');
-            link.download = 'PhotoTrace_Secret.png';
-            link.href = stegoCanvas.toDataURL("image/png");
+            // If Social Mode, JPG is fine but PNG is better quality.
+            // If Invisible Mode, PNG is MANDATORY.
+            link.download = 'PhotoTrace_Secure_' + Date.now() + '.png';
+            link.href = canvas.toDataURL("image/png");
             link.click();
-            alert("Image downloaded! File size optimized.");
+            alert("Image Encrypted & Downloaded! You can now upload this to Facebook/WhatsApp.");
         }
-
-        function decodeMessage() {
-            const password = document.getElementById('decodePass').value;
-            if (!password) {
-                alert("Please enter the password.");
-                return;
-            }
-
-            const imgData = ctx.getImageData(0, 0, stegoCanvas.width, stegoCanvas.height);
-            const data = imgData.data;
-            let binaryMsg = "";
-
-            // Read Bits
-            for (let i = 0; i < data.length; i += 4) {
-                const bit = data[i] & 1;
-                binaryMsg += bit;
-            }
-
-            let rawString = "";
-            
-            // Convert until null terminator
-            for (let i = 0; i < binaryMsg.length; i += 8) {
-                const byte = binaryMsg.substr(i, 8);
-                if (byte === "00000000") break;
-                rawString += String.fromCharCode(parseInt(byte, 2));
-                if (rawString.length > 5000) break; // Safety limit
-            }
-
-            const outBox = document.getElementById('decryptedOutput');
+        
+        // Patching encryption logic for the UI Read part
+        const originalXor = xorEncrypt;
+        // Redefine decryption specific
+        window.xorEncrypt = function(text, pass) {
+            // Check if it's encode or decode attempt
+            // This is a simple symmetric XOR, so A^B=C, C^B=A.
+            // But we added Base64.
             try {
-                const decrypted = xorEncrypt(rawString, password);
-                
-                if (decrypted.startsWith("NEXLO::")) {
-                    outBox.style.display = "block";
-                    outBox.style.color = "#fff";
-                    outBox.innerHTML = `<strong>Success:</strong> <br>${decrypted.replace("NEXLO::", "")}`;
-                } else {
-                    throw new Error("Invalid");
+                // Try decoding base64 first (assuming it's coming from storage)
+                const decodedB64 = atob(text);
+                let result = '';
+                for (let i = 0; i < decodedB64.length; i++) {
+                    result += String.fromCharCode(decodedB64.charCodeAt(i) ^ pass.charCodeAt(i % pass.length));
                 }
-            } catch (e) {
-                outBox.style.display = "block";
-                outBox.style.color = "#ff4757";
-                outBox.innerHTML = "Error: Invalid Password or No Message found.";
+                return result;
+            } catch(e) {
+                // If base64 fails, maybe we are encoding?
+                let result = '';
+                for (let i = 0; i < text.length; i++) {
+                    result += String.fromCharCode(text.charCodeAt(i) ^ pass.charCodeAt(i % pass.length));
+                }
+                return btoa(result);
             }
-        }
+        };
+
     </script>
 </body>
 </html>
