@@ -1,595 +1,1158 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PhotoTrace | NexloCode</title>
-    <!-- EXIF Library CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <style>
-        /* --- General Reset & Fonts --- */
-        :root {
-            --primary: #00f2ff;
-            --secondary: #7000ff;
-            --bg: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --text: #e2e8f0;
-            --input-bg: rgba(0, 0, 0, 0.3);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ORACLE — AI Market Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050810;
+    --surface: #0a0f1e;
+    --card: #0d1428;
+    --border: rgba(0,200,255,0.12);
+    --accent: #00c8ff;
+    --accent2: #ff4d6d;
+    --accent3: #39ff88;
+    --gold: #ffd166;
+    --text: #e8edf5;
+    --muted: #6b7a99;
+    --up: #39ff88;
+    --down: #ff4d6d;
+    --glow: 0 0 20px rgba(0,200,255,0.3);
+  }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-        body {
-            background: radial-gradient(circle at top left, #1e1b4b, #0f172a);
-            color: var(--text);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            overflow-x: hidden;
-        }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
 
-        /* --- Header --- */
-        header {
-            width: 100%;
-            padding: 20px;
-            text-align: center;
-            background: rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(0,200,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,200,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
 
-        .logo {
-            font-size: 2rem;
-            font-weight: 800;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: 2px;
-        }
+  .ambient { position: fixed; border-radius: 50%; filter: blur(120px); opacity: 0.12; pointer-events: none; z-index: 0; }
+  .ambient-1 { width: 600px; height: 600px; background: var(--accent); top: -200px; left: -100px; }
+  .ambient-2 { width: 500px; height: 500px; background: var(--accent2); bottom: -200px; right: -100px; }
+  .ambient-3 { width: 400px; height: 400px; background: var(--accent3); top: 50%; left: 50%; transform: translate(-50%,-50%); }
 
-        .tagline { font-size: 0.9rem; opacity: 0.7; margin-top: 5px; }
+  .container { max-width: 1400px; margin: 0 auto; padding: 0 16px; position: relative; z-index: 1; }
 
-        /* --- Main Container --- */
-        .container {
-            width: 90%;
-            max-width: 800px;
-            margin: 30px auto;
-            padding-bottom: 50px;
-        }
+  /* ── HEADER ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
 
-        /* --- Upload Section --- */
-        .upload-area {
-            display: block; /* Label behaves as block */
-            border: 2px dashed var(--secondary);
-            background: rgba(112, 0, 255, 0.05);
-            border-radius: 20px;
-            padding: 40px;
-            text-align: center;
-            cursor: pointer;
-            transition: 0.3s;
-            position: relative;
-            overflow: hidden;
-        }
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(1.4rem, 5vw, 2rem);
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    text-shadow: var(--glow);
+  }
+  .logo span { color: var(--text); }
+  .logo::after {
+    content: 'AI MARKET INTELLIGENCE';
+    display: block;
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(0.35rem, 1.5vw, 0.42rem);
+    letter-spacing: 0.3em;
+    color: var(--muted);
+    margin-top: -4px;
+  }
 
-        .upload-area:hover {
-            background: rgba(112, 0, 255, 0.1);
-            transform: scale(1.01);
-            box-shadow: 0 0 20px rgba(112, 0, 255, 0.3);
-        }
+  .header-right { display: flex; align-items: center; gap: 10px; }
 
-        .upload-icon { font-size: 3rem; color: var(--primary); margin-bottom: 15px; }
-        .upload-text { font-size: 1.1rem; font-weight: 600; }
-        .upload-sub { font-size: 0.8rem; opacity: 0.6; margin-top: 5px; }
-        
-        #fileInput { display: none; }
+  .live-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(57,255,136,0.08);
+    border: 1px solid rgba(57,255,136,0.25);
+    border-radius: 4px;
+    padding: 5px 10px;
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(0.55rem, 1.8vw, 0.68rem);
+    color: var(--up);
+    letter-spacing: 0.1em;
+  }
+  .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--up); animation: pulse 1.5s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } }
 
-        /* --- Analysis Section --- */
-        #analysisSection { display: none; animation: fadeIn 0.5s ease; }
+  .time-display { font-family: 'Space Mono', monospace; font-size: clamp(0.55rem, 1.8vw, 0.72rem); color: var(--muted); display: none; }
+  @media(min-width: 480px) { .time-display { display: block; } }
 
-        .image-preview-container {
-            margin: 30px 0;
-            text-align: center;
-        }
-        
-        .preview-img {
-            max-width: 100%;
-            max-height: 400px;
-            border-radius: 10px;
-            border: 2px solid var(--primary);
-            box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
-        }
+  /* ── TICKER ── */
+  .ticker-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 16px;
+    position: relative;
+  }
+  .ticker-wrap::before, .ticker-wrap::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 60px;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .ticker-wrap::before { left: 0; background: linear-gradient(90deg, var(--surface), transparent); }
+  .ticker-wrap::after { right: 0; background: linear-gradient(-90deg, var(--surface), transparent); }
 
-        /* --- Info Cards --- */
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-        }
+  .ticker-inner { display: flex; animation: scroll 30s linear infinite; width: max-content; }
+  @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
-        .card {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(5px);
-        }
+  .ticker-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 22px;
+    border-right: 1px solid var(--border);
+    white-space: nowrap;
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(0.6rem, 1.8vw, 0.72rem);
+  }
+  .ticker-symbol { color: var(--accent); font-weight: 700; }
+  .ticker-change.up { color: var(--up); }
+  .ticker-change.down { color: var(--down); }
 
-        .card-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding-bottom: 10px;
-        }
+  /* ── FUNDING STRIP ── */
+  .funding-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    background: rgba(255,209,102,0.06);
+    border: 1px solid rgba(255,209,102,0.15);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(0.55rem, 1.6vw, 0.68rem);
+  }
+  .funding-strip .item { display: flex; align-items: center; gap: 6px; }
+  .funding-strip .key { color: var(--muted); }
+  .funding-strip .val { color: var(--gold); font-weight: 700; }
+  .funding-sep { color: var(--border); display: none; }
+  @media(min-width: 600px) { .funding-sep { display: inline; } }
 
-        .card-icon { color: var(--primary); margin-right: 10px; font-size: 1.2rem; }
-        .card-title { font-weight: bold; font-size: 1.1rem; color: #fff; }
+  /* ── ACCURACY BADGE STRIP ── */
+  .accuracy-strip {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .acc-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0,200,255,0.06);
+    border: 1px solid rgba(0,200,255,0.18);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+  .acc-badge .acc-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent3); }
+  .acc-badge .acc-val { color: var(--accent3); font-weight: 700; }
 
-        .data-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 0.9rem;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            padding-bottom: 5px;
-        }
-        .data-row:last-child { border-bottom: none; }
+  /* ── MAIN GRID ── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
 
-        .label { color: #94a3b8; }
-        .value { color: #fff; font-weight: 500; text-align: right; word-break: break-all; margin-left: 10px;}
-        
-        .warning { color: #ff4757; font-weight: bold; }
-        .safe { color: #2ed573; font-weight: bold; }
+  @media(min-width: 900px) {
+    .main-grid {
+      grid-template-columns: 1fr 360px;
+    }
+    .order-book { grid-column: 2; grid-row: 1 / 3; }
+    .signal-row { grid-column: 1 / -1; }
+  }
 
-        /* --- Histogram Styles --- */
-        #histoCanvas {
-            width: 100%;
-            height: 120px;
-            background: rgba(0,0,0,0.2);
-            border-radius: 5px;
-            margin-top: 10px;
-        }
+  /* ── HERO CARD ── */
+  .hero-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: clamp(16px, 4vw, 28px) clamp(14px, 4vw, 32px);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
 
-        /* --- Stego Styles --- */
-        .stego-controls { display: flex; gap: 10px; margin-bottom: 15px; }
-        .tab-btn { flex: 1; padding: 8px; border: none; background: rgba(255,255,255,0.1); color: #fff; cursor: pointer; border-radius: 5px; transition: 0.3s; }
-        .tab-btn.active { background: var(--secondary); font-weight: bold; }
+  .asset-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; gap: 8px; }
+  .asset-name { font-family: 'Bebas Neue', sans-serif; font-size: clamp(1.6rem, 6vw, 2.8rem); letter-spacing: 0.08em; line-height: 1; }
+  .asset-sub { font-family: 'Space Mono', monospace; font-size: clamp(0.5rem, 1.5vw, 0.65rem); color: var(--muted); letter-spacing: 0.2em; margin-top: 4px; }
 
-        .stego-input { width: 100%; padding: 10px; margin-bottom: 10px; background: var(--input-bg); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; color: #fff; outline: none; }
-        .stego-input:focus { border-color: var(--primary); }
+  .price-change-badge {
+    display: flex; align-items: center; gap: 6px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(0.7rem, 2vw, 0.85rem);
+    font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .price-change-badge.down { background: rgba(255,77,109,0.12); border: 1px solid rgba(255,77,109,0.3); color: var(--down); }
+  .price-change-badge.up { background: rgba(57,255,136,0.1); border: 1px solid rgba(57,255,136,0.25); color: var(--up); }
 
-        .action-btn { width: 100%; padding: 10px; background: linear-gradient(90deg, var(--secondary), var(--primary)); border: none; color: white; font-weight: bold; border-radius: 5px; cursor: pointer; margin-top: 5px; }
+  .price-display { display: flex; align-items: baseline; gap: 10px; margin-bottom: 16px; }
+  .price-main {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3rem, 12vw, 5.5rem);
+    line-height: 1;
+    color: var(--accent);
+    text-shadow: 0 0 40px rgba(0,200,255,0.4);
+    letter-spacing: 0.02em;
+  }
+  .price-currency { font-family: 'Space Mono', monospace; font-size: clamp(0.75rem, 2vw, 1.1rem); color: var(--muted); align-self: flex-end; margin-bottom: 6px; }
 
-        .result-box { margin-top: 15px; padding: 10px; background: rgba(0,0,0,0.4); border-radius: 5px; min-height: 40px; word-wrap: break-word; border-left: 3px solid var(--primary); display: none; }
+  .price-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  @media(min-width: 480px) { .price-stats { grid-template-columns: repeat(4, 1fr); } }
 
-        .map-btn { display: inline-block; margin-top: 10px; padding: 8px 16px; background: var(--secondary); color: white; text-decoration: none; border-radius: 5px; font-size: 0.8rem; transition: 0.3s; }
-        .map-btn:hover { background: var(--primary); color: #000; }
+  .stat-cell { background: rgba(13,20,40,0.8); padding: 12px 14px; text-align: center; }
+  .stat-label { font-family: 'Space Mono', monospace; font-size: clamp(0.48rem, 1.4vw, 0.58rem); color: var(--muted); letter-spacing: 0.12em; margin-bottom: 5px; text-transform: uppercase; }
+  .stat-value { font-family: 'Space Mono', monospace; font-size: clamp(0.75rem, 2.5vw, 0.9rem); font-weight: 700; color: var(--text); }
+  .stat-value.up { color: var(--up); }
+  .stat-value.down { color: var(--down); }
 
-        footer { margin-top: auto; padding: 20px; text-align: center; font-size: 0.8rem; color: #64748b; }
-        .nexlo { color: var(--primary); font-weight: bold; }
+  .chart-section { margin-top: 16px; }
+  .chart-label { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--muted); letter-spacing: 0.2em; margin-bottom: 8px; text-transform: uppercase; }
+  .mini-chart { width: 100%; height: 70px; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    </style>
+  /* ── ORDER BOOK ── */
+  .order-book {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .order-book::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(1rem, 3.5vw, 1.2rem);
+    letter-spacing: 0.15em;
+    color: var(--text);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 8px var(--gold); }
+
+  .ob-header { display: grid; grid-template-columns: 1fr 1fr; padding: 0 4px 8px; border-bottom: 1px solid var(--border); font-family: 'Space Mono', monospace; font-size: 0.58rem; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 6px; }
+  .ob-header span:last-child { text-align: right; }
+
+  .ob-row { display: grid; grid-template-columns: 1fr 1fr; padding: 4px; font-family: 'Space Mono', monospace; font-size: clamp(0.62rem, 1.8vw, 0.72rem); position: relative; cursor: pointer; transition: background 0.15s; border-radius: 3px; }
+  .ob-row:hover { background: rgba(255,255,255,0.04); }
+  .ob-bar { position: absolute; top: 0; bottom: 0; opacity: 0.08; border-radius: 3px; transition: width 0.5s ease; }
+  .ob-row.ask .ob-bar { background: var(--down); right: 0; }
+  .ob-row.bid .ob-bar { background: var(--up); left: 0; }
+  .ob-row.ask .ob-price { color: var(--down); }
+  .ob-row.bid .ob-price { color: var(--up); }
+  .ob-amount { text-align: right; color: var(--muted); }
+
+  .ob-spread { text-align: center; padding: 6px; font-family: 'Space Mono', monospace; font-size: 0.62rem; color: var(--accent); background: rgba(0,200,255,0.05); border-radius: 4px; margin: 4px 0; letter-spacing: 0.1em; }
+  .ob-mid { text-align: center; padding: 8px; font-family: 'Bebas Neue', sans-serif; font-size: clamp(1.4rem, 5vw, 1.8rem); color: var(--accent); letter-spacing: 0.05em; text-shadow: 0 0 20px rgba(0,200,255,0.5); }
+
+  .bs-bar { margin-top: 10px; background: rgba(255,255,255,0.06); border-radius: 4px; height: 8px; overflow: hidden; display: flex; }
+  .bs-buy { height: 100%; background: var(--up); transition: width 1s ease; }
+  .bs-sell { height: 100%; background: var(--down); flex: 1; }
+  .bs-labels { display: flex; justify-content: space-between; margin-top: 5px; font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--muted); }
+  .bs-labels .buy-lbl { color: var(--up); }
+  .bs-labels .sell-lbl { color: var(--down); }
+
+  /* ── AI CARD ── */
+  .ai-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: clamp(16px, 4vw, 24px) clamp(14px, 4vw, 28px);
+    position: relative;
+    overflow: hidden;
+  }
+  .ai-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--accent3), transparent); }
+
+  /* ── ACCURACY PANEL (new) ── */
+  .accuracy-panel {
+    background: rgba(0,200,255,0.04);
+    border: 1px solid rgba(0,200,255,0.15);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+  }
+  .acc-panel-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .acc-panel-title::before { content: '◆'; font-size: 0.5rem; }
+
+  .acc-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  @media(min-width: 500px) { .acc-grid { grid-template-columns: repeat(4, 1fr); } }
+
+  .acc-item { text-align: center; }
+  .acc-item-label { font-family: 'Space Mono', monospace; font-size: 0.52rem; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 3px; }
+  .acc-item-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 0.05em; }
+  .acc-item-val.good { color: var(--up); }
+  .acc-item-val.warn { color: var(--gold); }
+  .acc-item-val.bad { color: var(--down); }
+
+  /* Depth & multi-timeframe inputs */
+  .analysis-config {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+    align-items: center;
+  }
+  .config-label { font-family: 'Space Mono', monospace; font-size: 0.58rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+
+  .tf-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 5px 10px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+    touch-action: manipulation;
+  }
+  .tf-btn.active, .tf-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(0,200,255,0.08); }
+
+  .depth-select {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 5px 10px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    cursor: pointer;
+    outline: none;
+    -webkit-appearance: none;
+  }
+  .depth-select:focus { border-color: var(--accent); }
+
+  .quick-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .quick-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 6px 12px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(0.55rem, 1.5vw, 0.62rem);
+    cursor: pointer;
+    transition: all 0.2s;
+    touch-action: manipulation;
+  }
+  .quick-btn:hover, .quick-btn:active { border-color: var(--accent); color: var(--accent); background: rgba(0,200,255,0.06); }
+
+  .ai-prompt { display: flex; gap: 8px; margin-bottom: 14px; }
+  .ai-input {
+    flex: 1;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 11px 14px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: clamp(0.82rem, 2.5vw, 0.9rem);
+    outline: none;
+    transition: border-color 0.2s;
+    min-width: 0;
+  }
+  .ai-input:focus { border-color: var(--accent); }
+  .ai-input::placeholder { color: var(--muted); }
+
+  .ai-btn {
+    background: linear-gradient(135deg, var(--accent), #0088bb);
+    border: none;
+    border-radius: 8px;
+    padding: 11px 16px;
+    color: #000;
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(0.65rem, 1.8vw, 0.75rem);
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: opacity 0.2s, transform 0.1s;
+    white-space: nowrap;
+    flex-shrink: 0;
+    touch-action: manipulation;
+  }
+  .ai-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+  .ai-btn:active { transform: translateY(0); }
+  .ai-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ── RESPONSE WITH CONFIDENCE SCORE ── */
+  .ai-response {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    min-height: 100px;
+    position: relative;
+  }
+
+  .ai-response-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .ai-response-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--accent3);
+    letter-spacing: 0.15em;
+  }
+  .ai-icon { width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent3)); display: flex; align-items: center; justify-content: center; font-size: 9px; flex-shrink: 0; }
+
+  .confidence-score {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(57,255,136,0.08);
+    border: 1px solid rgba(57,255,136,0.2);
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--accent3);
+  }
+
+  .ai-text { font-size: clamp(0.82rem, 2.5vw, 0.88rem); line-height: 1.65; color: var(--text); opacity: 0.9; }
+
+  /* Structured output sections */
+  .ai-section {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+  }
+  .ai-section-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+
+  .key-levels {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .level-tag {
+    background: rgba(0,200,255,0.07);
+    border: 1px solid rgba(0,200,255,0.2);
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--accent);
+  }
+  .level-tag.resist { background: rgba(255,77,109,0.07); border-color: rgba(255,77,109,0.2); color: var(--down); }
+  .level-tag.support { background: rgba(57,255,136,0.07); border-color: rgba(57,255,136,0.2); color: var(--up); }
+
+  .ai-loading { display: flex; align-items: center; gap: 12px; color: var(--muted); font-family: 'Space Mono', monospace; font-size: 0.72rem; }
+  .dots { display: flex; gap: 4px; }
+  .dot-anim { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); animation: dotBounce 1s ease-in-out infinite; }
+  .dot-anim:nth-child(2) { animation-delay: 0.15s; }
+  .dot-anim:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes dotBounce { 0%, 100% { transform: translateY(0); opacity: 0.4; } 50% { transform: translateY(-5px); opacity: 1; } }
+
+  /* ── SIGNAL ROW ── */
+  .signal-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  @media(min-width: 600px) { .signal-row { grid-template-columns: repeat(4, 1fr); } }
+
+  .signal-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: clamp(12px, 3vw, 18px) clamp(12px, 3vw, 20px);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, border-color 0.2s;
+    cursor: default;
+  }
+  .signal-card:hover { transform: translateY(-3px); border-color: rgba(0,200,255,0.25); }
+  .signal-card::after { content: ''; position: absolute; inset: 0; opacity: 0; transition: opacity 0.3s; background: radial-gradient(circle at 50% 0%, rgba(0,200,255,0.08), transparent 70%); }
+  .signal-card:hover::after { opacity: 1; }
+
+  .sig-label { font-family: 'Space Mono', monospace; font-size: clamp(0.48rem, 1.5vw, 0.58rem); color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 8px; }
+  .sig-value { font-family: 'Bebas Neue', sans-serif; font-size: clamp(1.6rem, 5vw, 2.2rem); letter-spacing: 0.05em; line-height: 1; margin-bottom: 6px; }
+  .sig-value.bullish { color: var(--up); text-shadow: 0 0 20px rgba(57,255,136,0.4); }
+  .sig-value.bearish { color: var(--down); text-shadow: 0 0 20px rgba(255,77,109,0.4); }
+  .sig-value.neutral { color: var(--gold); text-shadow: 0 0 20px rgba(255,209,102,0.4); }
+
+  .sig-meter { width: 100%; height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; }
+  .sig-fill { height: 100%; border-radius: 2px; transition: width 1.5s cubic-bezier(0.23, 1, 0.32, 1); }
+  .sig-fill.up { background: linear-gradient(90deg, rgba(57,255,136,0.5), var(--up)); }
+  .sig-fill.down { background: linear-gradient(90deg, rgba(255,77,109,0.5), var(--down)); }
+  .sig-fill.neutral { background: linear-gradient(90deg, rgba(255,209,102,0.5), var(--gold)); }
+
+  .sig-sub { font-family: 'Space Mono', monospace; font-size: clamp(0.48rem, 1.5vw, 0.6rem); color: var(--muted); margin-top: 5px; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* ── MOBILE NAV BOTTOM (new) ── */
+  .mobile-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(10,15,30,0.97);
+    border-top: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+    z-index: 100;
+    padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+  }
+  .mobile-nav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.48rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 4px;
+    transition: color 0.2s;
+    touch-action: manipulation;
+  }
+  .mobile-nav-btn .nav-icon { font-size: 1.1rem; line-height: 1; }
+  .mobile-nav-btn.active { color: var(--accent); }
+  @media(min-width: 900px) { .mobile-nav { display: none; } }
+
+  /* ── SECTION ANCHORS (for mobile nav) ── */
+  .section-anchor { scroll-margin-top: 16px; }
+
+  /* ── BOTTOM PADDING for mobile nav ── */
+  .bottom-pad { height: 70px; }
+  @media(min-width: 900px) { .bottom-pad { height: 20px; } }
+
+  /* ── BADGE PULSE ANIMATION ── */
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  .ai-text { animation: fadeIn 0.3s ease; }
+</style>
 </head>
 <body>
 
-    <header>
-        <div class="logo">PhotoTrace</div>
-        <div class="tagline">Advanced Metadata & Forensic Analysis</div>
-    </header>
+<div class="ambient ambient-1"></div>
+<div class="ambient ambient-2"></div>
+<div class="ambient ambient-3"></div>
 
-    <div class="container">
-        <!-- Upload Section -->
-        <label for="fileInput" class="upload-area" id="dropZone">
-            <i class="fas fa-fingerprint upload-icon"></i>
-            <div class="upload-text">Drop image here or Click to Upload</div>
-            <div class="upload-sub">Supports JPEG, JPG, PNG</div>
-            <input type="file" id="fileInput" accept="image/*">
-        </label>
+<div class="container">
 
-        <!-- Analysis Results -->
-        <div id="analysisSection">
-            <div class="image-preview-container">
-                <img id="previewImage" class="preview-img" src="" alt="Preview">
-                <!-- Hidden Canvas -->
-                <canvas id="processCanvas" style="display:none;"></canvas>
-            </div>
+  <!-- HEADER -->
+  <header>
+    <div class="logo">ORACLE <span>AI</span></div>
+    <div class="header-right">
+      <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+      <div class="time-display" id="clock">--:--:--</div>
+    </div>
+  </header>
 
-            <div class="info-grid">
-                
-                <!-- File Info -->
-                <div class="card">
-                    <div class="card-header">
-                        <i class="fas fa-file-alt card-icon"></i>
-                        <span class="card-title">File Details</span>
-                    </div>
-                    <div id="fileData"></div>
-                </div>
+  <!-- FUNDING STRIP -->
+  <div class="funding-strip">
+    <div class="item"><span class="key">PAIR</span><span class="val">OIL/USDT PERP</span></div>
+    <span class="funding-sep">|</span>
+    <div class="item"><span class="key">FUNDING</span><span class="val">-0.0613%</span></div>
+    <span class="funding-sep">|</span>
+    <div class="item"><span class="key">NEXT</span><span class="val" id="countdown">03:14:41</span></div>
+    <span class="funding-sep">|</span>
+    <div class="item"><span class="key">LEV</span><span class="val">20×</span></div>
+    <span class="funding-sep">|</span>
+    <div class="item"><span class="key">FEES</span><span class="val" style="color:var(--up)">ZERO</span></div>
+  </div>
 
-                <!-- Device Info -->
-                <div class="card">
-                    <div class="card-header">
-                        <i class="fas fa-camera card-icon"></i>
-                        <span class="card-title">Device Info</span>
-                    </div>
-                    <div id="deviceData"></div>
-                </div>
+  <!-- ACCURACY BADGES -->
+  <div class="accuracy-strip">
+    <div class="acc-badge"><div class="acc-dot"></div>AI ACCURACY <span class="acc-val">MULTI-FACTOR</span></div>
+    <div class="acc-badge"><div class="acc-dot" style="background:var(--gold)"></div>DATA SOURCES <span class="acc-val" style="color:var(--gold)">LIVE+CONTEXT</span></div>
+    <div class="acc-badge"><div class="acc-dot" style="background:var(--accent)"></div>ANALYSIS MODE <span class="acc-val" style="color:var(--accent)" id="modeLabel">STANDARD</span></div>
+  </div>
 
-                <!-- Settings -->
-                <div class="card">
-                    <div class="card-header">
-                        <i class="fas fa-sliders-h card-icon"></i>
-                        <span class="card-title">Camera Settings</span>
-                    </div>
-                    <div id="settingsData"></div>
-                </div>
+  <!-- TICKER -->
+  <div class="ticker-wrap">
+    <div class="ticker-inner" id="ticker"></div>
+  </div>
 
-                <!-- Forensic -->
-                <div class="card" style="border-color: var(--secondary);">
-                    <div class="card-header">
-                        <i class="fas fa-user-secret card-icon"></i>
-                        <span class="card-title">Forensic Analysis</span>
-                    </div>
-                    <div id="forensicData"></div>
-                </div>
+  <!-- MAIN GRID -->
+  <div class="main-grid">
 
-                <!-- Histogram -->
-                <div class="card">
-                    <div class="card-header">
-                        <i class="fas fa-chart-line card-icon"></i>
-                        <span class="card-title">Color Analysis</span>
-                    </div>
-                    <canvas id="histoCanvas"></canvas>
-                    <div style="text-align:center; font-size:0.7rem; color:#aaa; margin-top:5px;">
-                        <span style="color:#ff4757">Red</span> | <span style="color:#2ed573">Green</span> | <span style="color:#00f2ff">Blue</span>
-                    </div>
-                </div>
-
-                <!-- Location -->
-                <div class="card">
-                    <div class="card-header">
-                        <i class="fas fa-map-marker-alt card-icon"></i>
-                        <span class="card-title">Geolocation</span>
-                    </div>
-                    <div id="locationData"></div>
-                </div>
-
-                <!-- Steganography -->
-                <div class="card" style="grid-column: 1 / -1; border: 1px solid var(--primary);">
-                    <div class="card-header">
-                        <i class="fas fa-key card-icon"></i>
-                        <span class="card-title">Secret Message (Steganography)</span>
-                    </div>
-                    
-                    <div class="stego-controls">
-                        <button class="tab-btn active" onclick="switchTab('hide')">Hide Message</button>
-                        <button class="tab-btn" onclick="switchTab('read')">Read Message</button>
-                    </div>
-
-                    <div id="hideTab">
-                        <div style="font-size:0.8rem; color:#94a3b8; margin-bottom:10px;">
-                            * Image will be resized (Max 1920px) to keep file size low.
-                        </div>
-                        <input type="password" id="encodePass" class="stego-input" placeholder="Set Password (Required)">
-                        <textarea id="secretMsg" class="stego-input" rows="3" placeholder="Write your secret message here..."></textarea>
-                        <button class="action-btn" onclick="encodeMessage()">
-                            <i class="fas fa-lock"></i> Save Message in Image
-                        </button>
-                    </div>
-
-                    <div id="readTab" style="display:none;">
-                        <input type="password" id="decodePass" class="stego-input" placeholder="Enter Password to Unlock">
-                        <button class="action-btn" style="background: linear-gradient(90deg, #10b981, #059669);" onclick="decodeMessage()">
-                            <i class="fas fa-unlock"></i> Reveal Message
-                        </button>
-                        <div id="decryptedOutput" class="result-box"></div>
-                    </div>
-                </div>
-
-            </div>
+    <!-- HERO PRICE CARD -->
+    <div class="hero-card section-anchor" id="sec-price">
+      <div class="asset-header">
+        <div>
+          <div class="asset-name">WTI CRUDE OIL</div>
+          <div class="asset-sub">USDT PERPETUAL · CROSS MARGIN</div>
         </div>
+        <div class="price-change-badge down" id="changeBadge">▼ −2.10%</div>
+      </div>
+
+      <div class="price-display">
+        <div class="price-main" id="mainPrice">93.27</div>
+        <div class="price-currency">USDT</div>
+      </div>
+
+      <div class="price-stats">
+        <div class="stat-cell">
+          <div class="stat-label">24H HIGH</div>
+          <div class="stat-value up">95.48</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-label">24H LOW</div>
+          <div class="stat-value down">92.11</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-label">24H VOL</div>
+          <div class="stat-value">2.41M</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-label">OPEN INT</div>
+          <div class="stat-value">847.2K</div>
+        </div>
+      </div>
+
+      <div class="chart-section">
+        <div class="chart-label">PRICE ACTION — LAST 60 TICKS</div>
+        <canvas class="mini-chart" id="priceChart"></canvas>
+      </div>
     </div>
 
-    <footer>
-        Designed & Developed by <span class="nexlo">NexloCode</span> &copy; 2025
-    </footer>
+    <!-- ORDER BOOK -->
+    <div class="order-book section-anchor" id="sec-book">
+      <div class="section-title"><div class="dot"></div>DEPTH BOOK</div>
+      <div class="ob-header"><span>PRICE (USDT)</span><span>AMOUNT</span></div>
+      <div id="asks"></div>
+      <div class="ob-mid" id="midPrice">93.27</div>
+      <div class="ob-spread">SPREAD: 0.02 | <span id="spreadPct">0.021%</span></div>
+      <div id="bids"></div>
+      <div class="bs-bar">
+        <div class="bs-buy" id="buyBar" style="width:32%"></div>
+        <div class="bs-sell"></div>
+      </div>
+      <div class="bs-labels">
+        <span class="buy-lbl">BUY 32%</span>
+        <span class="sell-lbl">SELL 68%</span>
+      </div>
+    </div>
 
-    <script>
-        const fileInput = document.getElementById('fileInput');
-        const analysisSection = document.getElementById('analysisSection');
-        const previewImage = document.getElementById('previewImage');
-        const processCanvas = document.getElementById('processCanvas');
-        const ctx = processCanvas.getContext('2d', { willReadFrequently: true });
-        
-        let originalFile = null;
+    <!-- AI ANALYSIS (ENHANCED) -->
+    <div class="ai-card section-anchor" id="sec-ai">
+      <div class="section-title"><div class="dot" style="background:var(--accent3); box-shadow: 0 0 8px var(--accent3)"></div>AI ANALYST — ENHANCED</div>
 
-        // --- Drag & Drop Handling ---
-        const dropZone = document.getElementById('dropZone');
+      <!-- ACCURACY PANEL -->
+      <div class="accuracy-panel">
+        <div class="acc-panel-title">Analysis Accuracy Factors</div>
+        <div class="acc-grid">
+          <div class="acc-item">
+            <div class="acc-item-label">TECH DATA</div>
+            <div class="acc-item-val good">✓ LIVE</div>
+          </div>
+          <div class="acc-item">
+            <div class="acc-item-label">ORDERBOOK</div>
+            <div class="acc-item-val good">✓ REALTIME</div>
+          </div>
+          <div class="acc-item">
+            <div class="acc-item-label">FUNDING</div>
+            <div class="acc-item-val good">✓ LOADED</div>
+          </div>
+          <div class="acc-item">
+            <div class="acc-item-label">MACRO CTX</div>
+            <div class="acc-item-val warn">~ PARTIAL</div>
+          </div>
+        </div>
+      </div>
 
-        // Prevent default drag behaviors
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, preventDefaults, false);
-        });
+      <!-- ANALYSIS DEPTH CONFIG -->
+      <div class="analysis-config">
+        <span class="config-label">TIMEFRAME:</span>
+        <button class="tf-btn active" onclick="setTF(this,'5m')">5M</button>
+        <button class="tf-btn" onclick="setTF(this,'1h')">1H</button>
+        <button class="tf-btn" onclick="setTF(this,'4h')">4H</button>
+        <button class="tf-btn" onclick="setTF(this,'1d')">1D</button>
+        <span class="config-label" style="margin-left:6px">DEPTH:</span>
+        <select class="depth-select" id="analysisDepth" onchange="setDepth(this.value)">
+          <option value="quick">QUICK</option>
+          <option value="standard" selected>STANDARD</option>
+          <option value="deep">DEEP</option>
+          <option value="expert">EXPERT</option>
+        </select>
+      </div>
 
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
+      <!-- QUICK BUTTONS -->
+      <div class="quick-btns">
+        <button class="quick-btn" onclick="ask('TECHNICAL_ANALYSIS')">📊 Tech Analysis</button>
+        <button class="quick-btn" onclick="ask('SUPPORT_RESISTANCE')">📍 S&R Levels</button>
+        <button class="quick-btn" onclick="ask('LONG_SHORT')">🎯 Long vs Short</button>
+        <button class="quick-btn" onclick="ask('FUNDAMENTALS')">🌐 Fundamentals</button>
+        <button class="quick-btn" onclick="ask('FUNDING_RATE')">💡 Funding Rate</button>
+        <button class="quick-btn" onclick="ask('RISK_MANAGEMENT')">⚠️ Risk Mgmt</button>
+        <button class="quick-btn" onclick="ask('SENTIMENT')">🧠 Market Sentiment</button>
+        <button class="quick-btn" onclick="ask('ENTRY_EXIT')">🎯 Entry/Exit Points</button>
+      </div>
 
-        // Highlight effect on drag
-        dropZone.addEventListener('dragover', () => dropZone.style.transform = "scale(1.02)");
-        dropZone.addEventListener('dragleave', () => dropZone.style.transform = "scale(1)");
+      <!-- CUSTOM INPUT -->
+      <div class="ai-prompt">
+        <input class="ai-input" id="aiInput" placeholder="Ask about strategy, risk, signals..." />
+        <button class="ai-btn" id="aiBtn" onclick="askCustom()">ANALYZE ▶</button>
+      </div>
 
-        // Handle Drop
-        dropZone.addEventListener('drop', e => {
-            dropZone.style.transform = "scale(1)";
-            const dt = e.dataTransfer;
-            const files = dt.files;
-            handleFiles(files);
-        });
+      <!-- RESPONSE BOX -->
+      <div class="ai-response">
+        <div class="ai-response-header">
+          <div class="ai-response-title">
+            <div class="ai-icon">✦</div>
+            <span>ORACLE AI · MARKET INTELLIGENCE</span>
+          </div>
+          <div class="confidence-score" id="confidenceScore" style="display:none">
+            <span id="confVal">—</span>
+          </div>
+        </div>
+        <div class="ai-text" id="aiText">
+          Select analysis depth and timeframe above, then click a quick button or type your own question for AI-powered WTI Crude Oil market insights.
+        </div>
+        <div id="keyLevelsSection" style="display:none" class="ai-section">
+          <div class="ai-section-title">Key Price Levels</div>
+          <div class="key-levels" id="keyLevels"></div>
+        </div>
+      </div>
+    </div>
 
-        // Handle Click (Label automatically triggers input, so NO explicit click listener needed on dropZone)
-        fileInput.addEventListener('change', function() { handleFiles(this.files); });
+    <!-- SIGNALS -->
+    <div class="signal-row section-anchor" id="sec-signals">
+      <div class="signal-card">
+        <div class="sig-label">RSI (14)</div>
+        <div class="sig-value bearish">38.4</div>
+        <div class="sig-meter"><div class="sig-fill down" id="rsi-bar"></div></div>
+        <div class="sig-sub">OVERSOLD ZONE</div>
+      </div>
+      <div class="signal-card">
+        <div class="sig-label">MACD SIGNAL</div>
+        <div class="sig-value bearish">SELL</div>
+        <div class="sig-meter"><div class="sig-fill down" id="macd-bar"></div></div>
+        <div class="sig-sub">BEARISH CROSS</div>
+      </div>
+      <div class="signal-card">
+        <div class="sig-label">MOMENTUM</div>
+        <div class="sig-value neutral">WEAK</div>
+        <div class="sig-meter"><div class="sig-fill neutral" id="mom-bar"></div></div>
+        <div class="sig-sub">LOW CONVICTION</div>
+      </div>
+      <div class="signal-card">
+        <div class="sig-label">AI SIGNAL</div>
+        <div class="sig-value bearish" id="aiSignal">CAUTION</div>
+        <div class="sig-meter"><div class="sig-fill down" id="ai-bar"></div></div>
+        <div class="sig-sub" id="aiSignalSub">BEARISH BIAS</div>
+      </div>
+    </div>
 
-        // Helper: Format Bytes
-        function formatBytes(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-        }
+  </div><!-- /main-grid -->
 
-        function handleFiles(files) {
-            if (files.length > 0) {
-                originalFile = files[0];
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    previewImage.src = e.target.result;
-                    analysisSection.style.display = 'block';
+  <div class="bottom-pad"></div>
+</div><!-- /container -->
 
-                    // 1. File Details
-                    document.getElementById('fileData').innerHTML = `
-                        ${createRow('Name', originalFile.name)}
-                        ${createRow('Size', formatBytes(originalFile.size))}
-                        ${createRow('Type', originalFile.type)}
-                        ${createRow('Modified', new Date(originalFile.lastModified).toLocaleDateString())}
-                    `;
-                    
-                    // --- Load Image for Processing ---
-                    const img = new Image();
-                    img.onload = function() {
-                        const MAX_WIDTH = 1920; 
-                        const MAX_HEIGHT = 1080;
-                        let width = img.width;
-                        let height = img.height;
+<!-- MOBILE BOTTOM NAV -->
+<nav class="mobile-nav">
+  <button class="mobile-nav-btn active" onclick="scrollTo('sec-price',this)">
+    <span class="nav-icon">📈</span>PRICE
+  </button>
+  <button class="mobile-nav-btn" onclick="scrollTo('sec-book',this)">
+    <span class="nav-icon">📒</span>BOOK
+  </button>
+  <button class="mobile-nav-btn" onclick="scrollTo('sec-ai',this)">
+    <span class="nav-icon">🤖</span>AI
+  </button>
+  <button class="mobile-nav-btn" onclick="scrollTo('sec-signals',this)">
+    <span class="nav-icon">📡</span>SIGNALS
+  </button>
+</nav>
 
-                        if (width > height) {
-                            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
-                        } else {
-                            if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
-                        }
+<script>
+// ── MOBILE NAV SCROLL ──
+function scrollTo(id, btn) {
+  document.getElementById(id).scrollIntoView({behavior:'smooth', block:'start'});
+  document.querySelectorAll('.mobile-nav-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
 
-                        processCanvas.width = width;
-                        processCanvas.height = height;
-                        ctx.drawImage(img, 0, 0, width, height);
-                        
-                        drawHistogram(width, height);
-                    };
-                    img.src = e.target.result;
+// ── CLOCK ──
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toUTCString().split(' ')[4] + ' UTC';
+}
+setInterval(updateClock, 1000);
+updateClock();
 
-                    // Reset Inputs
-                    document.getElementById('decryptedOutput').style.display = 'none';
-                    document.getElementById('secretMsg').value = '';
-                    document.getElementById('encodePass').value = '';
-                    document.getElementById('decodePass').value = '';
+// ── COUNTDOWN ──
+let fundingSeconds = 3 * 3600 + 14 * 60 + 41;
+function updateCountdown() {
+  fundingSeconds = Math.max(0, fundingSeconds - 1);
+  const h = Math.floor(fundingSeconds / 3600);
+  const m = Math.floor((fundingSeconds % 3600) / 60);
+  const s = fundingSeconds % 60;
+  document.getElementById('countdown').textContent =
+    String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
+setInterval(updateCountdown, 1000);
 
-                    // Run Metadata Analysis
-                    if(originalFile.type !== "image/png") { 
-                         analyzeEXIF(originalFile);
-                    } else {
-                        document.getElementById('deviceData').innerHTML = '<div style="padding:5px;text-align:center;font-size:0.8rem">EXIF limited for PNG</div>';
-                        document.getElementById('settingsData').innerHTML = createRow('Resolution', "Check File Details");
-                        document.getElementById('locationData').innerHTML = '<div style="text-align:center;color:#94a3b8;">N/A</div>';
-                        document.getElementById('forensicData').innerHTML = createRow('Integrity', 'Format not fully supported');
-                    }
-                };
-                reader.readAsDataURL(originalFile);
-            }
-        }
+// ── TICKER ──
+const tickerData = [
+  {s:'OIL/USDT',p:'93.27',c:'-2.10%',d:'down'},
+  {s:'BTC/USDT',p:'62,441',c:'+1.24%',d:'up'},
+  {s:'ETH/USDT',p:'3,218',c:'+0.87%',d:'up'},
+  {s:'GOLD/USDT',p:'2,341',c:'-0.42%',d:'down'},
+  {s:'SPX500',p:'5,187',c:'+0.31%',d:'up'},
+  {s:'EUR/USD',p:'1.0871',c:'-0.18%',d:'down'},
+  {s:'NATGAS',p:'2.143',c:'-3.21%',d:'down'},
+  {s:'SILVER',p:'27.84',c:'+0.65%',d:'up'},
+  {s:'BNB/USDT',p:'398.2',c:'-0.92%',d:'down'},
+  {s:'SOL/USDT',p:'178.4',c:'+2.44%',d:'up'},
+];
+function buildTicker() {
+  const d = [...tickerData, ...tickerData];
+  document.getElementById('ticker').innerHTML = d.map(t =>
+    `<div class="ticker-item">
+      <span class="ticker-symbol">${t.s}</span>
+      <span class="ticker-price">${t.p}</span>
+      <span class="ticker-change ${t.d}">${t.d==='up'?'▲':'▼'} ${t.c}</span>
+    </div>`
+  ).join('');
+}
+buildTicker();
 
-        function createRow(label, value, className = '') {
-            return `<div class="data-row"><span class="label">${label}</span><span class="value ${className}">${value || 'N/A'}</span></div>`;
-        }
+// ── ORDER BOOK ──
+const baseAsks = [[93.33,150.1],[93.32,154.1],[93.31,60.4],[93.30,136.5],[93.29,8.7],[93.28,5.4],[93.27,5.4],[93.26,2.9]];
+const baseBids = [[93.24,1.9],[93.22,4.7],[93.21,7.4],[93.20,7.6],[93.19,7.1],[93.18,68.7],[93.17,59.8],[93.16,72.4]];
+const maxAsk = Math.max(...baseAsks.map(r=>r[1]));
+const maxBid = Math.max(...baseBids.map(r=>r[1]));
+function fmt(n){ return n>=1000?(n/1000).toFixed(2)+'K':n.toFixed(3); }
+function renderBook() {
+  document.getElementById('asks').innerHTML = baseAsks.map(([p,a])=>{
+    const w=(a/maxAsk*100).toFixed(0);
+    return `<div class="ob-row ask"><div class="ob-bar" style="width:${w}%"></div><span class="ob-price">${p.toFixed(2)}</span><span class="ob-amount">${fmt(a)}</span></div>`;
+  }).join('');
+  document.getElementById('bids').innerHTML = baseBids.map(([p,a])=>{
+    const w=(a/maxBid*100).toFixed(0);
+    return `<div class="ob-row bid"><div class="ob-bar" style="width:${w}%"></div><span class="ob-price">${p.toFixed(2)}</span><span class="ob-amount">${fmt(a)}</span></div>`;
+  }).join('');
+}
+renderBook();
+setInterval(()=>{
+  baseAsks.forEach(r=>{r[1]=Math.max(0.1,r[1]+(Math.random()-0.5)*5);});
+  baseBids.forEach(r=>{r[1]=Math.max(0.1,r[1]+(Math.random()-0.5)*5);});
+  renderBook();
+}, 2000);
 
-        function analyzeEXIF(file) {
-            EXIF.getData(file, function() {
-                const make = EXIF.getTag(this, "Make");
-                const model = EXIF.getTag(this, "Model");
-                document.getElementById('deviceData').innerHTML = `
-                    ${createRow('Make', make)}
-                    ${createRow('Model', model)}
-                    ${createRow('Resolution', `${EXIF.getTag(this, "PixelXDimension")||'?'} x ${EXIF.getTag(this, "PixelYDimension")||'?'}`)}
-                `;
+// ── CHART ──
+let priceHistory = [], basePrice = 93.27;
+for(let i=0;i<60;i++){ basePrice+=(Math.random()-0.52)*0.15; priceHistory.push(+(basePrice.toFixed(2))); }
+function drawChart() {
+  const canvas = document.getElementById('priceChart');
+  if (!canvas.offsetWidth) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth, H = canvas.offsetHeight;
+  canvas.width = W; canvas.height = H;
+  const min = Math.min(...priceHistory), max = Math.max(...priceHistory), range = max-min||0.01;
+  const pad = 8;
+  const pts = priceHistory.map((p,i)=>({
+    x: pad+(i/(priceHistory.length-1))*(W-pad*2),
+    y: H-pad-((p-min)/range)*(H-pad*2)
+  }));
+  const grad = ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,'rgba(0,200,255,0.25)'); grad.addColorStop(1,'rgba(0,200,255,0)');
+  ctx.beginPath(); ctx.moveTo(pts[0].x,H); ctx.lineTo(pts[0].x,pts[0].y);
+  pts.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));
+  ctx.lineTo(pts[pts.length-1].x,H); ctx.closePath(); ctx.fillStyle=grad; ctx.fill();
+  ctx.beginPath(); ctx.moveTo(pts[0].x,pts[0].y); pts.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));
+  ctx.strokeStyle='rgba(0,200,255,0.85)'; ctx.lineWidth=1.5; ctx.stroke();
+  const last=pts[pts.length-1];
+  ctx.beginPath(); ctx.arc(last.x,last.y,3.5,0,Math.PI*2); ctx.fillStyle='#00c8ff'; ctx.fill();
+}
+function tickPrice() {
+  const delta=(Math.random()-0.52)*0.06;
+  const last=priceHistory[priceHistory.length-1];
+  const next=+(Math.max(90,Math.min(97,last+delta)).toFixed(2));
+  priceHistory.push(next); if(priceHistory.length>60) priceHistory.shift();
+  document.getElementById('mainPrice').textContent=next.toFixed(2);
+  document.getElementById('midPrice').textContent=next.toFixed(2);
+  drawChart();
+}
+setInterval(tickPrice,1200);
+setTimeout(drawChart,200);
+window.addEventListener('resize',drawChart);
 
-                const iso = EXIF.getTag(this, "ISOSpeedRatings");
-                const exp = EXIF.getTag(this, "ExposureTime");
-                const fnum = EXIF.getTag(this, "FNumber");
-                const focal = EXIF.getTag(this, "FocalLength");
-                const flash = EXIF.getTag(this, "Flash");
-                const wb = EXIF.getTag(this, "WhiteBalance");
+// ── SIGNALS ──
+setTimeout(()=>{
+  document.getElementById('rsi-bar').style.width='38%';
+  document.getElementById('macd-bar').style.width='65%';
+  document.getElementById('mom-bar').style.width='42%';
+  document.getElementById('ai-bar').style.width='58%';
+},300);
 
-                document.getElementById('settingsData').innerHTML = `
-                    ${createRow('Aperture', fnum ? `f/${fnum}` : null)}
-                    ${createRow('Shutter', exp ? `1/${Math.round(1/exp)}s` : null)}
-                    ${createRow('ISO', iso)}
-                    ${createRow('Focal Len', focal ? `${focal}mm` : null)}
-                    ${createRow('Flash', flash ? (String(flash).includes('No') ? 'Off' : 'On') : 'N/A')}
-                    ${createRow('W. Balance', wb == 0 ? 'Auto' : (wb == 1 ? 'Manual' : 'N/A'))}
-                `;
+// ── ANALYSIS CONFIG STATE ──
+let selectedTF = '5m';
+let selectedDepth = 'standard';
 
-                const software = EXIF.getTag(this, "Software");
-                const dateOriginal = EXIF.getTag(this, "DateTimeOriginal");
-                let status = software ? '<span class="warning">Edited/Processed</span>' : '<span class="safe">Likely Original</span>';
-                document.getElementById('forensicData').innerHTML = `
-                    ${createRow('Software', software)}
-                    ${createRow('Date Taken', dateOriginal)}
-                    ${createRow('Integrity', status)}
-                `;
+function setTF(btn, tf) {
+  selectedTF = tf;
+  document.querySelectorAll('.tf-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('modeLabel').textContent = selectedDepth.toUpperCase() + ' / ' + tf.toUpperCase();
+}
 
-                const lat = EXIF.getTag(this, "GPSLatitude");
-                const lon = EXIF.getTag(this, "GPSLongitude");
-                if (lat && lon) {
-                    const dLat = convertDMSToDD(lat[0], lat[1], lat[2], EXIF.getTag(this, "GPSLatitudeRef"));
-                    const dLon = convertDMSToDD(lon[0], lon[1], lon[2], EXIF.getTag(this, "GPSLongitudeRef"));
-                    document.getElementById('locationData').innerHTML = `
-                        ${createRow('Lat', dLat.toFixed(5))}
-                        ${createRow('Lon', dLon.toFixed(5))}
-                        <div style="text-align:center;"><a href="https://maps.google.com/?q=${dLat},${dLon}" target="_blank" class="map-btn">View on Map</a></div>
-                    `;
-                } else {
-                    document.getElementById('locationData').innerHTML = '<div style="text-align:center;color:#94a3b8;padding:10px">No GPS Data</div>';
-                }
-            });
-        }
+function setDepth(val) {
+  selectedDepth = val;
+  document.getElementById('modeLabel').textContent = val.toUpperCase() + ' / ' + selectedTF.toUpperCase();
+}
 
-        function drawHistogram(w, h) {
-            const hCanvas = document.getElementById('histoCanvas');
-            const hCtx = hCanvas.getContext('2d');
-            hCanvas.width = 300; 
-            hCanvas.height = 120;
-            hCtx.clearRect(0,0,300,120);
+// ── ENHANCED MARKET CONTEXT BUILDER ──
+function buildMarketContext() {
+  const currentPrice = document.getElementById('mainPrice').textContent;
+  const recent = priceHistory.slice(-10);
+  const priceDir = recent[recent.length-1] > recent[0] ? 'rising' : 'falling';
+  const priceVol = (Math.max(...recent) - Math.min(...recent)).toFixed(2);
 
-            const srcData = ctx.getImageData(0, 0, w, h).data;
-            let r = new Array(256).fill(0);
-            let g = new Array(256).fill(0);
-            let b = new Array(256).fill(0);
-            
-            const step = 4;
-            for(let i=0; i<srcData.length; i+=4*step) {
-                r[srcData[i]]++;
-                g[srcData[i+1]]++;
-                b[srcData[i+2]]++;
-            }
+  const depthGuide = {
+    quick:    'Give 2 sentences maximum. Be sharp and direct.',
+    standard: 'Give 3-4 sentences with key insight. Professional tone.',
+    deep:     'Give a structured analysis covering: 1) Price Action, 2) Technical Setup, 3) Risk/Reward, 4) Trade Recommendation. Use clear sections.',
+    expert:   `Provide a comprehensive expert-level analysis with these sections:
+PRICE ACTION: Current momentum and structure
+TECHNICALS: RSI, MACD, volume interpretation  
+ORDER FLOW: Bid/ask imbalance and funding implications
+TRADE SETUP: Specific entry zone, stop loss, and 3 take-profit targets with rationale
+RISK FACTORS: What would invalidate this setup
+CONFIDENCE: Rate your confidence 1-10 and explain why.`
+  };
 
-            const max = Math.max(...r, ...g, ...b);
-            hCtx.lineWidth = 1.5;
-            hCtx.globalCompositeOperation = 'screen';
-            
-            drawChannel(hCtx, r, '#ff4757', max);
-            drawChannel(hCtx, g, '#2ed573', max);
-            drawChannel(hCtx, b, '#00f2ff', max);
-        }
+  const tfContext = {
+    '5m':  'Short-term scalping perspective. Focus on immediate price action and momentum.',
+    '1h':  'Intraday swing perspective. Balance between momentum and mean-reversion setups.',
+    '4h':  'Multi-session swing perspective. Emphasize key structural levels and trend direction.',
+    '1d':  'Position trading perspective. Focus on major support/resistance and fundamental drivers.'
+  };
 
-        function drawChannel(c, data, color, max) {
-            c.beginPath();
-            c.strokeStyle = color;
-            c.moveTo(0, 120);
-            for(let i=0; i<256; i++) {
-                let pct = data[i] / max;
-                let y = 120 - (pct * 110);
-                c.lineTo(i * (300/256), y);
-            }
-            c.stroke();
-        }
+  return `You are ORACLE, an elite institutional-grade AI market analyst for commodities and futures trading.
 
-        function convertDMSToDD(d, m, s, dir) {
-            let dd = d + m/60 + s/3600;
-            if (dir == "S" || dir == "W") dd *= -1;
-            return dd;
-        }
+LIVE MARKET DATA (Use this as primary context):
+- Instrument: WTI Crude Oil (OIL/USDT) Perpetual Futures
+- Current Price: ${currentPrice} USDT
+- 24h Change: -2.10% (from ~95.26 open)
+- 24h High: 95.48 | 24h Low: 92.11
+- Price direction (last 10 ticks): ${priceDir} (range: ${priceVol} USDT)
+- 24h Volume: 2.41M contracts
+- Open Interest: 847.2K
+- Funding Rate: -0.0613% (NEGATIVE → market is net short/bears paying longs)
+- Next Funding: ${document.getElementById('countdown').textContent}
+- Leverage Available: 20x Cross Margin
+- Exchange Fees: Zero
 
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
-            if(tab === 'hide') {
-                document.getElementById('hideTab').style.display = 'block';
-                document.getElementById('readTab').style.display = 'none';
-            } else {
-                document.getElementById('hideTab').style.display = 'none';
-                document.getElementById('readTab').style.display = 'block';
-            }
-        }
+ORDER BOOK CONTEXT:
+- Buy side: 32% | Sell side: 68% (heavy sell pressure)
+- Bid/Ask Spread: 0.02 USDT (tight liquidity)
+- Large ask walls visible above 93.30
 
-        function xorEncrypt(text, pass) {
-            let result = '';
-            for (let i = 0; i < text.length; i++) {
-                result += String.fromCharCode(text.charCodeAt(i) ^ pass.charCodeAt(i % pass.length));
-            }
-            return result;
-        }
+TECHNICAL INDICATORS:
+- RSI(14): 38.4 → Approaching oversold (<30 = oversold), not yet confirmed reversal
+- MACD: Bearish crossover, momentum declining
+- Momentum: Weak, low conviction
+- Volume: Below 24h average (caution for trend continuation)
 
-        function stringToBinary(str) {
-            let bin = "";
-            for (let i = 0; i < str.length; i++) bin += str[i].charCodeAt(0).toString(2).padStart(8, '0');
-            return bin;
-        }
+MACRO CONTEXT:
+- Negative funding rate suggests market leans bearish
+- High sell-side order book dominance
+- Price broke below 93.50 support zone
+- Next major support: 92.00-92.11 (24h low)
+- Resistance above: 93.50, then 95.00
 
-        function encodeMessage() {
-            const password = document.getElementById('encodePass').value;
-            const message = document.getElementById('secretMsg').value;
-            if (!password || !message) return alert("Please enter Password & Message.");
+ANALYSIS TIMEFRAME: ${selectedTF} — ${tfContext[selectedTF]}
 
-            const fullMessage = "NEXLO::" + message; 
-            const encrypted = xorEncrypt(fullMessage, password);
-            const binaryMsg = stringToBinary(encrypted) + "00000000"; 
+RESPONSE DEPTH: ${depthGuide[selectedDepth]}
 
-            const imgData = ctx.getImageData(0, 0, processCanvas.width, processCanvas.height);
-            const data = imgData.data;
+CRITICAL RULES:
+- Never give vague answers. Be specific with price levels.
+- Always mention stop-loss if recommending a trade direction.
+- Flag high-risk scenarios clearly.
+- Do not use markdown formatting (no **, no ##).
+- Use plain text with clear line breaks for sections if needed.`;
+}
 
-            if (binaryMsg.length > data.length / 4) return alert("Message too long!");
+// ── PROMPT TEMPLATES ──
+const prompts = {
+  TECHNICAL_ANALYSIS: `Based on all the live market data provided, give a technical analysis of WTI Crude Oil at current price. Cover: current trend, RSI interpretation, MACD signal, and what the order book tells us.`,
+  SUPPORT_RESISTANCE: `Identify the most important support and resistance levels for WTI Crude Oil at current price. Be specific: what are the exact price zones to watch, and what happens if price breaks each level?`,
+  LONG_SHORT: `Given the current data (RSI 38.4, MACD bearish, 68% sell pressure in order book, negative funding rate of -0.0613%), should a trader consider long or short? Give a directional bias with specific reasoning and a risk/reward ratio.`,
+  FUNDAMENTALS: `What fundamental factors are driving WTI Crude Oil right now? Consider OPEC production decisions, USD strength, global demand signals, and the meaning of the current negative funding rate in the broader context.`,
+  FUNDING_RATE: `The funding rate is -0.0613% (negative). Explain exactly what this means for market positioning, who is paying whom, and how a smart trader can use this information to their advantage.`,
+  RISK_MANAGEMENT: `Design a risk management plan for a 20x leveraged WTI Crude Oil trade at current price. Include: maximum position size as % of capital, recommended stop-loss placement, and how the order book data should influence position sizing.`,
+  SENTIMENT: `Analyze the overall market sentiment for WTI Crude Oil using all available data: price action, RSI, MACD, order book imbalance, funding rate, and volume. Rate sentiment on a scale from Extreme Fear to Extreme Greed with explanation.`,
+  ENTRY_EXIT: `Provide specific entry and exit points for WTI Crude Oil right now. For both a long and short scenario, give: entry zone, stop-loss level, take-profit 1, take-profit 2, and which scenario has better probability based on current data.`
+};
 
-            for (let i = 0; i < binaryMsg.length; i++) {
-                let pixelIndex = i * 4; 
-                data[pixelIndex] = (data[pixelIndex] & ~1) | parseInt(binaryMsg[i]);
-            }
-            ctx.putImageData(imgData, 0, 0);
+// ── MAIN ASK FUNCTION ──
+async function ask(promptKey) {
+  const btn = document.getElementById('aiBtn');
+  const textEl = document.getElementById('aiText');
+  const confEl = document.getElementById('confidenceScore');
+  const confVal = document.getElementById('confVal');
+  const levelsSection = document.getElementById('keyLevelsSection');
+  btn.disabled = true;
+  levelsSection.style.display = 'none';
+  confEl.style.display = 'none';
 
-            const link = document.createElement('a');
-            link.download = 'PhotoTrace_Secret.png';
-            link.href = processCanvas.toDataURL("image/png");
-            link.click();
-        }
+  textEl.innerHTML = `<div class="ai-loading"><div class="dots"><div class="dot-anim"></div><div class="dot-anim"></div><div class="dot-anim"></div></div>Analyzing with ${selectedDepth} depth on ${selectedTF}...</div>`;
 
-        function decodeMessage() {
-            const password = document.getElementById('decodePass').value;
-            if (!password) return alert("Please enter password.");
+  const question = prompts[promptKey] || promptKey;
+  const systemPrompt = buildMarketContext();
 
-            const imgData = ctx.getImageData(0, 0, processCanvas.width, processCanvas.height);
-            const data = imgData.data;
-            let binaryMsg = "";
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: question }]
+      })
+    });
 
-            for (let i = 0; i < data.length; i += 4) binaryMsg += (data[i] & 1);
+    const data = await res.json();
+    const reply = data.content?.find(b => b.type === 'text')?.text || 'No response received.';
+    textEl.textContent = reply;
 
-            let rawString = "";
-            for (let i = 0; i < binaryMsg.length; i += 8) {
-                const byte = binaryMsg.substr(i, 8);
-                if (byte === "00000000") break;
-                rawString += String.fromCharCode(parseInt(byte, 2));
-                if (rawString.length > 5000) break; 
-            }
+    // Extract key price levels from response
+    const levels = [];
+    const resistMatches = reply.match(/(?:resistance|resist|r[12]|target)[:\s]+\$?(\d{2,3}\.?\d*)/gi);
+    const suppMatches = reply.match(/(?:support|supp|s[12]|stop)[:\s]+\$?(\d{2,3}\.?\d*)/gi);
+    if (resistMatches) resistMatches.slice(0,3).forEach(m => {
+      const n = m.match(/(\d{2,3}\.?\d*)/); if(n) levels.push({type:'resist', val:n[1]});
+    });
+    if (suppMatches) suppMatches.slice(0,3).forEach(m => {
+      const n = m.match(/(\d{2,3}\.?\d*)/); if(n) levels.push({type:'support', val:n[1]});
+    });
 
-            const outBox = document.getElementById('decryptedOutput');
-            try {
-                const decrypted = xorEncrypt(rawString, password);
-                if (decrypted.startsWith("NEXLO::")) {
-                    outBox.style.display = "block";
-                    outBox.style.color = "#fff";
-                    outBox.innerHTML = `<strong>Success:</strong> <br>${decrypted.replace("NEXLO::", "")}`;
-                } else throw new Error();
-            } catch (e) {
-                outBox.style.display = "block";
-                outBox.style.color = "#ff4757";
-                outBox.innerHTML = "Error: Invalid Password or No Message.";
-            }
-        }
-    </script>
+    if (levels.length > 0) {
+      document.getElementById('keyLevels').innerHTML = levels.map(l =>
+        `<span class="level-tag ${l.type}">${l.type === 'resist' ? '▲ R' : '▼ S'} ${l.val}</span>`
+      ).join('');
+      levelsSection.style.display = 'block';
+    }
+
+    // Confidence based on depth
+    const confMap = { quick: '~70%', standard: '~78%', deep: '~85%', expert: '~90%' };
+    confVal.textContent = 'CONF: ' + confMap[selectedDepth];
+    confEl.style.display = 'flex';
+
+    // AI Signal update
+    const lc = reply.toLowerCase();
+    const sigEl = document.getElementById('aiSignal');
+    const subEl = document.getElementById('aiSignalSub');
+    const barEl = document.getElementById('ai-bar');
+    if (lc.includes('bullish') || lc.includes('long') || (lc.includes('buy') && !lc.includes('don\'t buy'))) {
+      sigEl.textContent='BULLISH'; sigEl.className='sig-value bullish';
+      barEl.className='sig-fill up'; barEl.style.width='75%';
+      subEl.textContent='BULLISH BIAS';
+    } else if (lc.includes('neutral') || lc.includes('sideways') || lc.includes('wait') || lc.includes('caution')) {
+      sigEl.textContent='NEUTRAL'; sigEl.className='sig-value neutral';
+      barEl.className='sig-fill neutral'; barEl.style.width='50%';
+      subEl.textContent='NEUTRAL BIAS';
+    } else {
+      sigEl.textContent='BEARISH'; sigEl.className='sig-value bearish';
+      barEl.className='sig-fill down'; barEl.style.width='65%';
+      subEl.textContent='BEARISH BIAS';
+    }
+  } catch (e) {
+    textEl.textContent = 'Connection error. Please check network and try again.';
+  }
+  btn.disabled = false;
+}
+
+function askCustom() {
+  const q = document.getElementById('aiInput').value.trim();
+  if (!q) return;
+  ask(q);
+  document.getElementById('aiInput').value = '';
+}
+
+document.getElementById('aiInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') askCustom();
+});
+</script>
 </body>
-</html>
+    </html>
